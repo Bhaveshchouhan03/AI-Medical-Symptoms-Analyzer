@@ -1,0 +1,281 @@
+<div class="min-h-screen bg-doctor-theme text-slate-800 dark:text-slate-100 transition-colors duration-300 p-4 sm:p-6 pb-20">
+  <div class="space-y-6 max-w-5xl mx-auto animate-fadeIn">
+
+  <!-- Title Section -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
+    <div>
+      <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">My Consultations</h1>
+      <p class="text-xs text-gray-400 font-semibold mt-1">Review, reschedule, or cancel your scheduled appointments and
+        diagnoses</p>
+    </div>
+    <a routerLink="/dashboard/find-doctors"
+      class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl transition shadow-sm text-center">
+      + Book New Consultation
+    </a>
+  </div>
+
+  <!-- Tabs Navigation -->
+  <div class="flex border-b border-gray-100 gap-2">
+    <button (click)="activeTab.set('upcoming')" [class.border-blue-600]="activeTab() === 'upcoming'"
+      [class.text-blue-600]="activeTab() === 'upcoming'"
+      class="px-4 py-3 border-b-2 border-transparent text-sm font-bold text-gray-400 hover:text-gray-700 transition">
+      📅 Upcoming Visits
+    </button>
+    <button (click)="activeTab.set('completed')" [class.border-green-600]="activeTab() === 'completed'"
+      [class.text-green-600]="activeTab() === 'completed'"
+      class="px-4 py-3 border-b-2 border-transparent text-sm font-bold text-gray-400 hover:text-gray-700 transition">
+      ✓ Completed Visits
+    </button>
+    <button (click)="activeTab.set('cancelled')" [class.border-red-600]="activeTab() === 'cancelled'"
+      [class.text-red-600]="activeTab() === 'cancelled'"
+      class="px-4 py-3 border-b-2 border-transparent text-sm font-bold text-gray-400 hover:text-gray-700 transition">
+      ✕ Cancelled / Rejected
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+  <div class="space-y-4">
+    @for (i of [1, 2]; track i) {
+    <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm animate-pulse flex flex-col gap-3">
+      <div class="h-4 bg-gray-200 rounded w-1/4"></div>
+      <div class="h-3 bg-gray-200 rounded w-2/3"></div>
+      <div class="h-10 bg-gray-200 rounded-xl"></div>
+    </div>
+    }
+  </div>
+  } @else {
+  <!-- Error State -->
+  @if (error()) {
+  <div class="p-4 bg-red-50 border border-red-100 rounded-2xl text-red-700 text-sm">
+    ⚠️ {{ error() }}
+  </div>
+  } @else {
+  <!-- Empty state -->
+  @if (filteredAppointments().length === 0) {
+  <div class="bg-white border border-gray-100 rounded-3xl p-12 text-center shadow-sm space-y-4">
+    <div class="text-4xl text-gray-300">📅</div>
+    <h3 class="text-lg font-bold text-gray-900">No appointments found</h3>
+    <p class="text-sm text-gray-400 max-w-sm mx-auto">There are no records found under the "{{ activeTab() }}" tab.</p>
+  </div>
+  } @else {
+  <!-- Listings -->
+  <div class="space-y-4">
+    @for (app of filteredAppointments(); track app._id) {
+    <div
+      class="bg-white border border-gray-100 hover:border-gray-200 rounded-3xl p-6 shadow-xs transition flex flex-col md:flex-row gap-5 justify-between items-start md:items-center">
+
+      <div class="space-y-2 min-w-0 flex-1">
+        <!-- Status Badge -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <span [class]="getStatusClass(app.status)"
+            class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1.5 uppercase tracking-wide">
+            <span>{{ getStatusIcon(app.status) }}</span> {{ app.status }}
+          </span>
+          <span class="text-[11px] text-gray-400 font-medium">Booked on {{ app.createdAt | date:'mediumDate' }}</span>
+        </div>
+
+        <!-- Info -->
+        <div>
+          <h3 class="font-extrabold text-gray-950 text-base">{{ app.doctorName }}</h3>
+          <p class="text-xs text-blue-600 font-extrabold uppercase tracking-wider">{{ app.doctorSpecialization }}</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-xs text-gray-500 font-medium">
+          <p class="flex items-center gap-1.5">
+            <span>📅</span> <strong>Date:</strong> {{ formatDate(app.appointmentDate) }}
+          </p>
+          <p class="flex items-center gap-1.5">
+            <span>⏰</span> <strong>Time:</strong> {{ app.appointmentTime }}
+          </p>
+          <p class="sm:col-span-2 flex items-start gap-1.5 mt-1 bg-gray-50 rounded-xl p-2.5 border border-gray-50">
+            <span class="text-base leading-none">📋</span>
+            <span>
+              <strong>Reason for Visit:</strong> {{ app.reasonForVisit }}
+              @if (app.symptoms.length > 0) {
+              <br /><span class="text-[11px] text-gray-400">Symptoms checked: {{ app.symptoms.join(', ') }}</span>
+              }
+            </span>
+          </p>
+        </div>
+
+        <!-- Alternative Slots Proposed Banners -->
+        @if (app.status === 'Rejected' && app.suggestedTimeSlots && app.suggestedTimeSlots.length > 0) {
+        <div class="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 mt-3 space-y-3">
+          <div>
+            <p class="text-xs font-bold text-amber-800 flex items-center gap-1.5 uppercase tracking-wide">
+              <span>🗓️</span> Reschedule Proposal Offered by {{ app.doctorName }}
+            </p>
+            <p class="text-[10px] text-amber-700 font-semibold mt-0.5">
+              Declined Reason: "{{ app.rejectionReason || 'Doctor scheduling conflict' }}"
+            </p>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Select one of the suggested times
+              below:</p>
+            <div class="flex flex-wrap gap-2">
+              @for (slot of app.suggestedTimeSlots; track slot) {
+              <button (click)="respondToAlternativeSlot(app._id, 'accept', slot)"
+                class="px-3 py-1.5 bg-white border border-amber-300 hover:border-amber-500 text-amber-800 text-[10px] font-extrabold uppercase tracking-wide rounded-xl shadow-xs transition duration-300">
+                Confirm: {{ slot }}
+              </button>
+              }
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 pt-1 border-t border-amber-200/50">
+            <button (click)="openReschedule(app)" class="text-xxs font-bold text-blue-600 hover:underline">
+              Request Custom Time
+            </button>
+            <button (click)="respondToAlternativeSlot(app._id, 'reject')"
+              class="text-xxs font-bold text-rose-600 hover:underline">
+              Cancel Appointment
+            </button>
+          </div>
+        </div>
+        }
+
+        <!-- Video consultation link -->
+        @if ((app.status === 'Accepted' || app.status === 'Rescheduled' || app.status === 'Emergency') && app.videoLink)
+        {
+        <div class="bg-blue-50 border border-blue-200 rounded-2xl p-3.5 mt-2 flex items-center justify-between text-xs">
+          <div>
+            <p class="font-bold text-blue-800">🌐 Virtual Consultation Active</p>
+            <p class="text-[10px] text-blue-600 mt-0.5">Clinic: {{ app.hospitalName }} | Address: {{ app.clinicAddress
+              }}</p>
+          </div>
+          <a [href]="app.videoLink" target="_blank"
+            class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-750 text-white font-extrabold uppercase tracking-wide rounded-xl shadow-sm transition">
+            Join Call
+          </a>
+        </div>
+        }
+
+        <!-- Doctor Notes -->
+        @if (app.notes) {
+        <div class="bg-green-50/50 border border-green-100 rounded-2xl p-4 mt-2 space-y-1">
+          <p class="text-xs font-bold text-green-800 uppercase tracking-wide">👨‍⚕️ Clinical Consultation Notes</p>
+          <p class="text-xs text-green-700 leading-relaxed font-semibold italic">"{{ app.notes }}"</p>
+          @if (app.prescriptionNotes) {
+          <div class="pt-1.5 border-t border-green-200/40 text-xxs text-green-700">
+            <strong class="text-green-800 uppercase tracking-wider block">Prescription issued:</strong>
+            <p class="mt-0.5">{{ app.prescriptionNotes }}</p>
+          </div>
+          }
+          @if (app.reportUrl) {
+          <div class="pt-1 flex items-center justify-between">
+            <span class="text-[10px] text-green-600">Attachment: Medical Report Log</span>
+            <a [href]="app.reportUrl" target="_blank"
+              class="text-[10px] text-blue-600 font-bold hover:underline">Download report</a>
+          </div>
+          }
+        </div>
+        }
+      </div>
+
+      <!-- Actions -->
+      @if (app.status === 'Pending' || app.status === 'Accepted' || app.status === 'Rescheduled' || app.status ===
+      'Emergency') {
+      <div
+        class="flex md:flex-col gap-2 w-full md:w-auto pt-3 md:pt-0 border-t border-gray-100 md:border-t-0 flex-shrink-0">
+        <button (click)="openReschedule(app)"
+          class="flex-1 md:w-32 px-4 py-2 border border-blue-200 text-blue-700 hover:bg-blue-50 text-xs font-bold rounded-xl transition">
+          Reschedule
+        </button>
+        <button (click)="cancelAppointment(app._id)"
+          class="flex-1 md:w-32 px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold rounded-xl transition">
+          Cancel Visit
+        </button>
+      </div>
+      }
+
+    </div>
+    }
+  </div>
+  }
+  }
+  }
+
+  <!-- ════════════ RESCHEDULE OVERLAY MODAL ════════════ -->
+  @if (isRescheduleOpen()) {
+  @if (selectedAppointmentForReschedule(); as app) {
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl p-6 sm:p-8 space-y-6 animate-scale-up">
+      <div class="flex items-center justify-between border-b border-gray-100 pb-4">
+        <div>
+          <h3 class="text-lg font-bold text-gray-950">Reschedule Consultation</h3>
+          <p class="text-xs text-gray-400 mt-0.5">Select a new date and slot for your visit</p>
+        </div>
+        <button (click)="isRescheduleOpen.set(false)" class="text-gray-400 hover:text-gray-600 text-lg">&times;</button>
+      </div>
+
+      <div class="space-y-4">
+        <div class="p-3.5 bg-gray-50 rounded-2xl flex items-center gap-3">
+          <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-lg">👨‍⚕️</div>
+          <div>
+            <p class="text-sm font-bold text-gray-900">{{ app.doctorName }}</p>
+            <p class="text-xs text-gray-500 font-medium">{{ app.doctorSpecialization }}</p>
+          </div>
+        </div>
+
+        <!-- Date -->
+        <div>
+          <label for="rescheduleDateInput" class="block text-xs font-bold text-gray-700 uppercase mb-1.5">New Date
+            *</label>
+          <input id="rescheduleDateInput" type="date" [value]="rescheduleDate()"
+            (input)="rescheduleDate.set($any($event.target).value)"
+            class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+          @if (rescheduleDate()) {
+          <div class="mt-1">
+            @if (isRescheduleDateValid()) {
+            <p class="text-[11px] text-green-600 font-semibold">✓ Doctor is available on this day of the week.</p>
+            } @else {
+            <p class="text-[11px] text-red-500 font-semibold">⚠️ Doctor is not available on this day. Available: {{
+              rescheduleDoctor()?.availableDays?.join(', ') }}</p>
+            }
+          </div>
+          }
+        </div>
+
+        <!-- Slots -->
+        <div>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Select Time Slot *</label>
+          @if (rescheduleDoctor(); as doc) {
+          <div class="grid grid-cols-2 gap-2">
+            @for (slot of doc.availableTimeSlots; track slot) {
+            <button type="button" (click)="rescheduleSlot.set(slot)" [class.bg-blue-600]="rescheduleSlot() === slot"
+              [class.text-white]="rescheduleSlot() === slot" [class.border-blue-600]="rescheduleSlot() === slot"
+              class="px-2.5 py-2 text-xs font-semibold rounded-xl border border-gray-200 hover:border-blue-400 hover:text-blue-600 transition">
+              {{ slot }}
+            </button>
+            }
+          </div>
+          } @else {
+          <p class="text-xs text-gray-400 font-semibold">Loading doctor slot options...</p>
+          }
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex justify-end gap-2 pt-4 border-t border-gray-100">
+        <button (click)="isRescheduleOpen.set(false)" [disabled]="isRescheduling()"
+          class="px-5 py-2.5 border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 text-sm font-semibold rounded-xl transition shadow-xs">
+          Discard
+        </button>
+        <button (click)="submitReschedule()"
+          [disabled]="isRescheduling() || !rescheduleDate() || !rescheduleSlot() || !isRescheduleDateValid()"
+          class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white text-sm font-semibold rounded-xl transition shadow-sm">
+          @if (isRescheduling()) {
+          Rescheduling...
+          } @else {
+          Confirm Reschedule
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+  }
+</div>
+</div>

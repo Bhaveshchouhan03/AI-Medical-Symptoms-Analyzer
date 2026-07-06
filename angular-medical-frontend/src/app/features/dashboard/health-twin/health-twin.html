@@ -1,0 +1,876 @@
+<div class="min-h-screen bg-ai-theme dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-6 space-y-6 transition-colors duration-300 font-sans">
+
+  <!-- ═══════════════ LOADING OVERLAY ═══════════════ -->
+  <div *ngIf="loading()"
+    class="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center z-50">
+    <div class="relative w-24 h-24">
+      <div class="absolute inset-0 rounded-full border-4 border-teal-500/20 border-t-teal-400 animate-spin"></div>
+      <div class="absolute inset-2 rounded-full border-4 border-violet-500/20 border-b-violet-400 animate-spin"
+        style="animation-direction: reverse; animation-duration: 1.5s;"></div>
+      <div class="absolute inset-5 bg-teal-500/10 rounded-full flex items-center justify-center animate-pulse">
+        <svg class="w-8 h-8 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      </div>
+    </div>
+    <span class="mt-4 text-sm font-semibold tracking-wider text-teal-400 animate-pulse">SYNCHRONIZING HEALTH TWIN
+      MATRIX...</span>
+  </div>
+
+  <!-- ═══════════════ HEADER ═══════════════ -->
+  <header
+    class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-slate-900/60 border border-slate-800/80 rounded-3xl backdrop-blur-xl">
+    <div class="space-y-1">
+      <div class="flex items-center gap-2">
+        <span
+          class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-teal-500/10 text-teal-400 border border-teal-500/20">Premium
+          Feature</span>
+        <span
+          class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-violet-500/10 text-violet-400 border border-violet-500/20">Gemini
+          1.5 Flash</span>
+      </div>
+      <h1
+        class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-teal-300 via-indigo-200 to-violet-300 bg-clip-text text-transparent">
+        AI Health Twin
+      </h1>
+      <p class="text-xs text-slate-400">
+        A virtual copy of your bio-records analyzing workouts, symptoms, and predicting future trends.
+      </p>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button (click)="refreshAiPredictions()" [disabled]="generatingPredictions()"
+        class="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-slate-800/80 hover:bg-slate-800 text-teal-300 border border-slate-700/60 transition duration-300 text-sm font-semibold disabled:opacity-50">
+        <span *ngIf="generatingPredictions()"
+          class="w-4 h-4 border-2 border-teal-300/30 border-t-teal-300 rounded-full animate-spin"></span>
+        <svg *ngIf="!generatingPredictions()" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H18.2" />
+        </svg>
+        Re-Analyze Twin
+      </button>
+
+      <button (click)="downloadPdfReport()"
+        class="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-br from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white font-semibold shadow-lg shadow-teal-500/10 hover:shadow-teal-500/20 transition duration-300 text-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        Export PDF Report
+      </button>
+    </div>
+  </header>
+
+  <!-- ═══════════════ DISCLAIMER (COMPLIANCE RULE) ═══════════════ -->
+  <div class="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-300 rounded-2xl flex items-start gap-3">
+    <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    </svg>
+    <div class="text-xs">
+      <span class="font-bold">MEDICAL EDUCATION NOTICE:</span> This AI Health Twin provides wellness insights for
+      educational purposes only. It is not a substitute for professional medical advice, diagnosis, or treatment. Never
+      ignore professional advice or delay seeking care because of info accessed here.
+    </div>
+  </div>
+
+  <!-- ═══════════════ SMART ALERTS HUB ═══════════════ -->
+  <div *ngIf="alerts().length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+    <div *ngFor="let alert of alerts()"
+      class="flex items-center gap-3 px-4 py-3 border rounded-2xl text-xs transition duration-300"
+      [ngClass]="getAlertClasses(alert.type)">
+      <span class="text-lg">🔔</span>
+      <div class="flex-1 font-medium">{{ alert.text }}</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ MAIN SECTIONS GRID ═══════════════ -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- LEFT PANEL: AVATAR & OVERALL SCORE (5 COLS) -->
+    <div class="lg:col-span-5 space-y-6">
+
+      <!-- AVATAR CONTAINER -->
+      <section
+        class="relative overflow-hidden p-6 bg-slate-900/60 border border-slate-800/80 rounded-3xl backdrop-blur-xl flex flex-col items-center">
+        <!-- Background radial grid -->
+        <div
+          class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(20,184,166,0.08)_0%,transparent_70%)] pointer-events-none">
+        </div>
+
+        <div class="w-full flex items-center justify-between z-10">
+          <div class="text-left">
+            <h2 class="text-lg font-bold tracking-tight text-teal-300">Digital Identity</h2>
+            <p class="text-xxs text-slate-400">Virtual health avatar representation</p>
+          </div>
+          <button (click)="customizingAvatar.set(!customizingAvatar())"
+            class="px-3 py-1.5 rounded-xl bg-slate-800 text-xs font-semibold hover:bg-slate-700 text-teal-300 border border-slate-700/60 transition">
+            Personalize Twin
+          </button>
+        </div>
+
+        <!-- 3D/2D Animated Digital Vector Avatar -->
+        <div class="relative w-64 h-64 my-6 flex items-center justify-center">
+
+          <!-- Outer rotating grid ring -->
+          <div class="absolute inset-0 rounded-full border border-teal-500/10 animate-pulse"></div>
+          <div class="absolute inset-4 rounded-full border border-dashed border-teal-500/20 animate-spin"
+            style="animation-duration: 25s;"></div>
+          <div class="absolute inset-8 rounded-full border border-teal-500/30 border-t-transparent animate-spin"
+            style="animation-duration: 8s;"></div>
+
+          <!-- Energy Core pulse -->
+          <div class="absolute w-20 h-20 rounded-full bg-gradient-to-br filter blur-md opacity-25 animate-pulse"
+            [ngClass]="{
+              'from-teal-500 to-cyan-400': selectedColor === 'cyan',
+              'from-violet-500 to-indigo-400': selectedColor === 'violet',
+              'from-emerald-500 to-teal-400': selectedColor === 'emerald',
+              'from-amber-500 to-orange-400': selectedColor === 'amber'
+            }">
+          </div>
+
+          <!-- Futuristic Bio-Avatar SVG -->
+          <svg class="w-48 h-48 z-10 transition-all duration-700" viewBox="0 0 100 100">
+            <!-- Pulsating core nodes -->
+            <circle cx="50" cy="50" r="1.5" fill="#2dd4bf" class="animate-ping" />
+
+            <!-- Avatar Outline & Neural Matrix Paths -->
+            <g [ngClass]="{
+              'text-cyan-400': selectedColor === 'cyan',
+              'text-violet-400': selectedColor === 'violet',
+              'text-emerald-400': selectedColor === 'emerald',
+              'text-amber-400': selectedColor === 'amber'
+            }" class="stroke-current fill-none stroke-[0.8] opacity-80">
+
+              <!-- Humanoid head & shoulders schematic -->
+              <path d="M50 35 C55 35 56 24 50 24 C44 24 45 35 50 35 Z" />
+              <path d="M28 72 C32 60 40 50 50 50 C60 50 68 60 72 72" />
+
+              <!-- Cybernetic node links -->
+              <line x1="50" y1="35" x2="50" y2="50" stroke-dasharray="2,2" />
+              <line x1="50" y1="50" x2="35" y2="60" />
+              <line x1="50" y1="50" x2="65" y2="60" />
+              <line x1="50" y1="24" x2="50" y2="15" stroke-dasharray="1,1" />
+
+              <!-- Scanning rings -->
+              <ellipse cx="50" cy="50" rx="30" ry="12" stroke-dasharray="4,4" class="animate-spin"
+                style="transform-origin: center; animation-duration: 15s;" />
+              <ellipse cx="50" cy="50" rx="20" ry="32" stroke-dasharray="1,3" class="animate-spin"
+                style="transform-origin: center; animation-duration: 20s; animation-direction: reverse;" />
+
+              <!-- Vitals sensor dots -->
+              <circle cx="50" cy="24" r="1" fill="currentColor" />
+              <circle cx="35" cy="60" r="1" fill="currentColor" />
+              <circle cx="65" cy="60" r="1" fill="currentColor" />
+              <circle cx="50" cy="50" r="1" fill="currentColor" />
+            </g>
+          </svg>
+
+          <!-- Floating data overlays -->
+          <div
+            class="absolute top-8 left-4 text-xxs bg-slate-900/90 px-2.5 py-1 rounded-lg border border-slate-800 text-slate-300 font-mono">
+            <span class="text-teal-400">BMI:</span> {{ profile()?.bmi }}
+          </div>
+          <div
+            class="absolute bottom-10 right-2 text-xxs bg-slate-900/90 px-2.5 py-1 rounded-lg border border-slate-800 text-slate-300 font-mono">
+            <span class="text-violet-400">SYS:</span> {{ score()?.current?.status }}
+          </div>
+        </div>
+
+        <!-- Identity Details -->
+        <div class="w-full grid grid-cols-3 gap-2 border-t border-slate-800/80 pt-4 text-center mt-2 z-10">
+          <div>
+            <div class="text-xxs text-slate-400 font-medium">NAME</div>
+            <div class="text-sm font-semibold truncate">{{ profile()?.name }}</div>
+          </div>
+          <div>
+            <div class="text-xxs text-slate-400 font-medium">AGE / GENDER</div>
+            <div class="text-sm font-semibold">{{ profile()?.age }} y / {{ profile()?.gender }}</div>
+          </div>
+          <div>
+            <div class="text-xxs text-slate-400 font-medium">MOOD STATE</div>
+            <div class="text-sm font-semibold text-teal-400">{{ profile()?.mood }}</div>
+          </div>
+        </div>
+
+        <!-- Personalize Avatar Overlay -->
+        <div *ngIf="customizingAvatar()"
+          class="absolute inset-0 bg-slate-900/95 z-20 p-6 flex flex-col justify-between rounded-3xl transition duration-500">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+              <h3 class="text-sm font-bold text-teal-300 uppercase tracking-wider">Customize Identity Matrix</h3>
+              <button (click)="customizingAvatar.set(false)" class="text-slate-400 hover:text-white">✕</button>
+            </div>
+
+            <div class="space-y-3 text-xs">
+              <div class="space-y-1">
+                <label class="text-slate-400">Avatar Matrix Theme</label>
+                <select [(ngModel)]="selectedTheme"
+                  class="w-full bg-slate-800 text-slate-100 rounded-xl px-3 py-2 border border-slate-700 outline-none">
+                  <option *ngFor="let t of themes" [value]="t">{{ t }}</option>
+                </select>
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-slate-400">Pulse Node Color</label>
+                <select [(ngModel)]="selectedColor"
+                  class="w-full bg-slate-800 text-slate-100 rounded-xl px-3 py-2 border border-slate-700 outline-none">
+                  <option *ngFor="let c of colors" [value]="c">{{ c }}</option>
+                </select>
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-slate-400">Mood Vibration</label>
+                <select [(ngModel)]="selectedMood"
+                  class="w-full bg-slate-800 text-slate-100 rounded-xl px-3 py-2 border border-slate-700 outline-none">
+                  <option *ngFor="let m of moods" [value]="m">{{ m }}</option>
+                </select>
+              </div>
+
+              <div class="flex items-center justify-between pt-2">
+                <span class="text-slate-400">Dynamic Outer Glow</span>
+                <input type="checkbox" [(ngModel)]="selectedGlow" class="w-4 h-4 accent-teal-400" />
+              </div>
+            </div>
+          </div>
+
+          <button (click)="saveAvatarSettings()"
+            class="w-full py-2.5 rounded-xl bg-gradient-to-r from-teal-500 to-indigo-500 hover:from-teal-600 hover:to-indigo-600 text-white text-xs font-bold transition">
+            Sync Virtual Identity
+          </button>
+        </div>
+      </section>
+
+      <!-- OVERALL HEALTH SCORE & RADIAL DIAL -->
+      <section class="p-6 bg-slate-900/60 border border-slate-800/80 rounded-3xl backdrop-blur-xl space-y-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-bold text-teal-300">Wellness Engine</h2>
+            <p class="text-xxs text-slate-400">Real-time health score calculation</p>
+          </div>
+          <span
+            class="px-2.5 py-0.5 rounded-lg text-xxs font-bold uppercase tracking-wider bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            {{ score()?.current?.category }}
+          </span>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center gap-6 justify-center">
+          <!-- Circular Animated Progress Dial -->
+          <div class="relative w-36 h-36 flex items-center justify-center">
+            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+              <!-- Background circle -->
+              <circle cx="50" cy="50" r="42" stroke="#1e293b" stroke-width="6" fill="transparent" />
+              <!-- Foreground progress gradient path -->
+              <circle cx="50" cy="50" r="42"
+                [attr.stroke]="score()?.current?.score >= 85 ? '#0d9488' : score()?.current?.score >= 70 ? '#4f46e5' : score()?.current?.score >= 50 ? '#d97706' : '#e11d48'"
+                stroke-width="6" fill="transparent" [attr.stroke-dasharray]="2 * 3.14159 * 42"
+                [attr.stroke-dashoffset]="2 * 3.14159 * 42 * (1 - (score()?.current?.score || 70) / 100)"
+                stroke-linecap="round" class="transition-all duration-1000 ease-out" />
+            </svg>
+            <div class="absolute flex flex-col items-center justify-center">
+              <span class="text-3xl font-extrabold text-white tracking-tight">{{ score()?.current?.score }}</span>
+              <span class="text-xxs text-slate-400 uppercase tracking-wider">HEALTH SCORE</span>
+            </div>
+          </div>
+
+          <!-- Score Breakdowns -->
+          <div class="flex-1 space-y-3 w-full">
+            <div class="space-y-1">
+              <div class="flex justify-between text-xxs font-semibold">
+                <span class="text-slate-400">Symptom Index</span>
+                <span class="text-teal-400">{{ score()?.current?.breakdown?.symptoms }}%</span>
+              </div>
+              <div class="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                <div class="h-full bg-teal-400 transition-all duration-700"
+                  [style.width.%]="score()?.current?.breakdown?.symptoms"></div>
+              </div>
+            </div>
+
+            <div class="space-y-1">
+              <div class="flex justify-between text-xxs font-semibold">
+                <span class="text-slate-400">BMI Weight Status</span>
+                <span class="text-teal-400">{{ score()?.current?.breakdown?.bmi }}%</span>
+              </div>
+              <div class="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                <div class="h-full bg-teal-400 transition-all duration-700"
+                  [style.width.%]="score()?.current?.breakdown?.bmi"></div>
+              </div>
+            </div>
+
+            <div class="space-y-1">
+              <div class="flex justify-between text-xxs font-semibold">
+                <span class="text-slate-400">Rest & Sleep Recovery</span>
+                <span class="text-indigo-400">{{ score()?.current?.breakdown?.sleep }}%</span>
+              </div>
+              <div class="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                <div class="h-full bg-indigo-400 transition-all duration-700"
+                  [style.width.%]="score()?.current?.breakdown?.sleep"></div>
+              </div>
+            </div>
+
+            <div class="space-y-1">
+              <div class="flex justify-between text-xxs font-semibold">
+                <span class="text-slate-400">Activity Levels</span>
+                <span class="text-indigo-400">{{ score()?.current?.breakdown?.activity }}%</span>
+              </div>
+              <div class="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                <div class="h-full bg-indigo-400 transition-all duration-700"
+                  [style.width.%]="score()?.current?.breakdown?.activity"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- RIGHT PANEL: PREDICTIONS, CHART, RISKS (7 COLS) -->
+    <div class="lg:col-span-7 space-y-6">
+
+      <!-- FUTURE HEALTH PREDICTIONS (GEMINI AI FORECAST) -->
+      <section class="p-6 bg-slate-900/60 border border-slate-800/80 rounded-3xl backdrop-blur-xl space-y-6">
+        <div class="flex items-center justify-between border-b border-slate-800/60 pb-3">
+          <div>
+            <h2 class="text-lg font-bold text-teal-300">AI Predictive Intelligence</h2>
+            <p class="text-xxs text-slate-400 font-medium">30-day forecast models compiled by Google Gemini AI</p>
+          </div>
+          <span
+            class="px-2.5 py-1 rounded-xl bg-teal-500/10 text-teal-400 border border-teal-500/20 text-xxs font-bold animate-pulse">
+            Gemini Engine Sync
+          </span>
+        </div>
+
+        <!-- 30-Day Text Forecast details -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 bg-slate-950/50 rounded-2xl border border-slate-850/80 space-y-2">
+            <span class="text-xxs text-teal-400 font-bold tracking-wider uppercase">Weight Trend Target</span>
+            <p class="text-xs text-slate-300 leading-relaxed font-medium">{{ predictions()?.weightTrend }}</p>
+          </div>
+
+          <div class="p-4 bg-slate-950/50 rounded-2xl border border-slate-850/80 space-y-2">
+            <span class="text-xxs text-teal-400 font-bold tracking-wider uppercase">Sleep Quality Forecast</span>
+            <p class="text-xs text-slate-300 leading-relaxed font-medium">{{ predictions()?.sleepQuality }}</p>
+          </div>
+
+          <div class="p-4 bg-slate-950/50 rounded-2xl border border-slate-850/80 space-y-2">
+            <span class="text-xxs text-indigo-400 font-bold tracking-wider uppercase">Stress & Cortisol Outlook</span>
+            <p class="text-xs text-slate-300 leading-relaxed font-medium">{{ predictions()?.stressLevel }}</p>
+          </div>
+
+          <div class="p-4 bg-slate-950/50 rounded-2xl border border-slate-850/80 space-y-2">
+            <span class="text-indigo-400 text-xxs font-bold tracking-wider uppercase">Hydration Target Forecast</span>
+            <p class="text-xs text-slate-300 leading-relaxed font-medium">{{ predictions()?.hydrationPrediction }}</p>
+          </div>
+        </div>
+
+        <!-- FORECAST FOREWORD BOX -->
+        <div
+          class="p-4 bg-gradient-to-br from-indigo-500/10 to-teal-500/5 rounded-2xl border border-indigo-500/10 space-y-1">
+          <h4 class="text-xxs font-extrabold text-indigo-400 tracking-wider uppercase">Future Wellness Synthesis</h4>
+          <p class="text-xs text-indigo-200/90 leading-relaxed">{{ predictions()?.monthlyForecast }}</p>
+        </div>
+
+        <!-- HEALTH PREDICTION CHARTS (SVG PATH TRENDS) -->
+        <div class="space-y-4">
+          <h3 class="text-xs font-bold text-teal-300 uppercase tracking-widest">Wellness Metric Checkpoint Trends (30
+            Days)</h3>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Chart 1: BMI trend -->
+            <div class="p-4 bg-slate-950/80 rounded-2xl border border-slate-800">
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-xxs text-slate-400 font-bold">BMI Checkpoint Curve</span>
+                <span class="text-xxs font-mono text-teal-300">{{ weight() }} kg BASE</span>
+              </div>
+
+              <!-- SVG Graph -->
+              <div class="relative w-full h-24 my-2">
+                <svg class="w-full h-full" viewBox="0 0 300 100" preserveAspectRatio="none">
+                  <!-- Gradient definitions -->
+                  <defs>
+                    <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#0d9488" stop-opacity="0.3" />
+                      <stop offset="100%" stop-color="#0d9488" stop-opacity="0.0" />
+                    </linearGradient>
+                  </defs>
+                  <!-- Graph gridlines -->
+                  <line x1="0" y1="20" x2="300" y2="20" stroke="#1e293b" stroke-width="0.5" stroke-dasharray="4,4" />
+                  <line x1="0" y1="50" x2="300" y2="50" stroke="#1e293b" stroke-width="0.5" stroke-dasharray="4,4" />
+                  <line x1="0" y1="80" x2="300" y2="80" stroke="#1e293b" stroke-width="0.5" stroke-dasharray="4,4" />
+
+                  <!-- Area path -->
+                  <path [attr.d]="getSvgAreaPath(predictions()?.bmiTrend, 300, 100)" fill="url(#chartGrad)" />
+                  <!-- Line path -->
+                  <path [attr.d]="getSvgPath(predictions()?.bmiTrend, 300, 100)" fill="none" stroke="#2dd4bf"
+                    stroke-width="2.5" />
+
+                  <!-- Interactive marker dots -->
+                  <circle *ngFor="let pt of getCircleCoordinates(predictions()?.bmiTrend, 300, 100)" [attr.cx]="pt.x"
+                    [attr.cy]="pt.y" r="3.5" fill="#0f172a" stroke="#2dd4bf" stroke-width="1.5"
+                    class="hover:scale-150 transition cursor-pointer">
+                  </circle>
+                </svg>
+              </div>
+              <div class="flex justify-between text-xxs font-mono text-slate-500 pt-1">
+                <span>Start</span>
+                <span>Wk 1</span>
+                <span>Wk 2</span>
+                <span>Wk 3</span>
+                <span>Wk 4</span>
+              </div>
+            </div>
+
+            <!-- Chart 2: Fitness Score Trend -->
+            <div class="p-4 bg-slate-950/80 rounded-2xl border border-slate-800">
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-xxs text-slate-400 font-bold">Fitness score progression</span>
+                <span class="text-xxs font-mono text-violet-400">+12% target</span>
+              </div>
+
+              <!-- SVG Graph -->
+              <div class="relative w-full h-24 my-2">
+                <svg class="w-full h-full" viewBox="0 0 300 100" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="chartGrad2" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.3" />
+                      <stop offset="100%" stop-color="#7c3aed" stop-opacity="0.0" />
+                    </linearGradient>
+                  </defs>
+                  <line x1="0" y1="20" x2="300" y2="20" stroke="#1e293b" stroke-width="0.5" stroke-dasharray="4,4" />
+                  <line x1="0" y1="50" x2="300" y2="50" stroke="#1e293b" stroke-width="0.5" stroke-dasharray="4,4" />
+                  <line x1="0" y1="80" x2="300" y2="80" stroke="#1e293b" stroke-width="0.5" stroke-dasharray="4,4" />
+
+                  <path [attr.d]="getSvgAreaPath(predictions()?.fitnessScoreTrend, 300, 100)" fill="url(#chartGrad2)" />
+                  <path [attr.d]="getSvgPath(predictions()?.fitnessScoreTrend, 300, 100)" fill="none" stroke="#a78bfa"
+                    stroke-width="2.5" />
+
+                  <circle *ngFor="let pt of getCircleCoordinates(predictions()?.fitnessScoreTrend, 300, 100)"
+                    [attr.cx]="pt.x" [attr.cy]="pt.y" r="3.5" fill="#0f172a" stroke="#a78bfa" stroke-width="1.5"
+                    class="hover:scale-150 transition cursor-pointer">
+                  </circle>
+                </svg>
+              </div>
+              <div class="flex justify-between text-xxs font-mono text-slate-500 pt-1">
+                <span>Start</span>
+                <span>Wk 1</span>
+                <span>Wk 2</span>
+                <span>Wk 3</span>
+                <span>Wk 4</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RISK ANALYSIS CARD SYSTEM -->
+      <section class="p-6 bg-slate-900/60 border border-slate-800/80 rounded-3xl backdrop-blur-xl space-y-4">
+        <div>
+          <h2 class="text-lg font-bold text-teal-300">Twin Vitals Risk Assessment</h2>
+          <p class="text-xxs text-slate-400">Dynamic warning indicators based on current logs and medical forms</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div *ngFor="let risk of risks()"
+            class="p-4 rounded-2xl border flex flex-col justify-between space-y-2 transition duration-300" [ngClass]="{
+              'bg-red-500/5 border-red-500/20 text-red-100': risk.level === 'High',
+              'bg-amber-500/5 border-amber-500/20 text-amber-100': risk.level === 'Moderate',
+              'bg-teal-500/5 border-teal-500/20 text-teal-100': risk.level === 'Low'
+            }">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider">{{ risk.name }}</span>
+              <span class="px-2 py-0.5 rounded text-xxs font-bold border uppercase" [ngClass]="{
+                  'bg-red-500/10 border-red-500/30 text-red-400': risk.level === 'High',
+                  'bg-amber-500/10 border-amber-500/30 text-amber-400': risk.level === 'Moderate',
+                  'bg-teal-500/10 border-teal-500/30 text-teal-400': risk.level === 'Low'
+                }">
+                {{ risk.level }}
+              </span>
+            </div>
+            <p class="text-xxs leading-relaxed text-slate-300">{{ risk.description }}</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ═══════════════ TABBED WIDGET LAYOUT ═══════════════ -->
+  <div class="bg-slate-900/60 border border-slate-800/80 rounded-3xl backdrop-blur-xl p-6 space-y-6">
+
+    <!-- Navigation Tabs -->
+    <nav class="flex items-center gap-1 p-1 bg-slate-950/60 border border-slate-850/80 rounded-2xl w-full sm:w-max">
+      <button (click)="activeTab.set('dashboard')"
+        class="flex-1 sm:flex-initial px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition duration-300"
+        [ngClass]="activeTab() === 'dashboard' ? 'bg-teal-500 text-white' : 'text-slate-400 hover:text-slate-200'">
+        Daily Targets
+      </button>
+
+      <button (click)="activeTab.set('reports')"
+        class="flex-1 sm:flex-initial px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition duration-300"
+        [ngClass]="activeTab() === 'reports' ? 'bg-teal-500 text-white' : 'text-slate-400 hover:text-slate-200'">
+        Averages & Reports
+      </button>
+
+      <button (click)="activeTab.set('achievements')"
+        class="flex-1 sm:flex-initial px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition duration-300"
+        [ngClass]="activeTab() === 'achievements' ? 'bg-teal-500 text-white' : 'text-slate-400 hover:text-slate-200'">
+        Digital Badges
+      </button>
+
+      <button (click)="activeTab.set('timeline')"
+        class="flex-1 sm:flex-initial px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition duration-300"
+        [ngClass]="activeTab() === 'timeline' ? 'bg-teal-500 text-white' : 'text-slate-400 hover:text-slate-200'">
+        Twin Timeline
+      </button>
+    </nav>
+
+    <!-- TAB 1: RECOMMENDATIONS / TARGETS -->
+    <div *ngIf="activeTab() === 'dashboard'" class="space-y-6 animate-fadeIn">
+      <div>
+        <h3 class="text-md font-bold text-teal-300">AI Daily Health Twin Recommendations</h3>
+        <p class="text-xs text-slate-400">Plausible wellness guidance targets matching symptoms and weight parameters
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="p-4 bg-slate-950/40 rounded-2xl border border-slate-800/80 flex items-start gap-3">
+          <span class="text-2xl p-2 bg-teal-500/10 rounded-xl text-teal-400">🏃</span>
+          <div class="space-y-1">
+            <h4 class="text-xs font-extrabold text-slate-400 uppercase">Workout Target</h4>
+            <p class="text-xs text-slate-200 leading-relaxed">{{ recommendations()?.workout }}</p>
+          </div>
+        </div>
+
+        <div class="p-4 bg-slate-950/40 rounded-2xl border border-slate-800/80 flex items-start gap-3">
+          <span class="text-2xl p-2 bg-teal-500/10 rounded-xl text-teal-400">🧘</span>
+          <div class="space-y-1">
+            <h4 class="text-xs font-extrabold text-slate-400 uppercase">Yoga Routine</h4>
+            <p class="text-xs text-slate-200 leading-relaxed">{{ recommendations()?.yoga }}</p>
+          </div>
+        </div>
+
+        <div class="p-4 bg-slate-950/40 rounded-2xl border border-slate-800/80 flex items-start gap-3">
+          <span class="text-2xl p-2 bg-teal-500/10 rounded-xl text-teal-400">🧠</span>
+          <div class="space-y-1">
+            <h4 class="text-xs font-extrabold text-slate-400 uppercase">Mind Meditation</h4>
+            <p class="text-xs text-slate-200 leading-relaxed">{{ recommendations()?.meditation }}</p>
+          </div>
+        </div>
+
+        <div class="p-4 bg-slate-950/40 rounded-2xl border border-slate-800/80 flex items-start gap-3">
+          <span class="text-2xl p-2 bg-indigo-500/10 rounded-xl text-indigo-400">💧</span>
+          <div class="space-y-1">
+            <h4 class="text-xs font-extrabold text-slate-400 uppercase">Hydration Limit</h4>
+            <p class="text-xs text-slate-200 leading-relaxed">Aim for <span class="text-teal-400 font-bold font-mono">{{
+                recommendations()?.waterGoal }}</span> intake.</p>
+          </div>
+        </div>
+
+        <div class="p-4 bg-slate-950/40 rounded-2xl border border-slate-800/80 flex items-start gap-3">
+          <span class="text-2xl p-2 bg-indigo-500/10 rounded-xl text-indigo-400">🥗</span>
+          <div class="space-y-1">
+            <h4 class="text-xs font-extrabold text-slate-400 uppercase">Nutrient Intake</h4>
+            <p class="text-xs text-slate-200 leading-relaxed">{{ recommendations()?.healthyFood }}</p>
+          </div>
+        </div>
+
+        <div class="p-4 bg-slate-950/40 rounded-2xl border border-slate-800/80 flex items-start gap-3">
+          <span class="text-2xl p-2 bg-indigo-500/10 rounded-xl text-indigo-400">🛌</span>
+          <div class="space-y-1">
+            <h4 class="text-xs font-extrabold text-slate-400 uppercase">Sleep & Stress Goals</h4>
+            <p class="text-xs text-slate-200 leading-relaxed">{{ recommendations()?.sleepGoal }} | {{
+              recommendations()?.stressManagement }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: REPORTS & COMPACT COMPARISONS -->
+    <div *ngIf="activeTab() === 'reports'" class="space-y-6 animate-fadeIn">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h3 class="text-md font-bold text-teal-300">Averages, Aggregates & Health Reports</h3>
+          <p class="text-xs text-slate-400 font-medium">Verify your compiled weekly activity logs and comparison
+            percentages</p>
+        </div>
+
+        <!-- Daily / Weekly / Monthly Report controls -->
+        <div class="flex items-center gap-1 bg-slate-950 border border-slate-800 rounded-xl p-1 w-max">
+          <button (click)="setReportType('daily')"
+            class="px-4 py-1.5 rounded-lg text-xxs font-bold uppercase transition"
+            [ngClass]="activeReportType() === 'daily' ? 'bg-teal-500 text-white' : 'text-slate-400 hover:text-slate-200'">
+            Daily
+          </button>
+          <button (click)="setReportType('weekly')"
+            class="px-4 py-1.5 rounded-lg text-xxs font-bold uppercase transition"
+            [ngClass]="activeReportType() === 'weekly' ? 'bg-teal-500 text-white' : 'text-slate-400 hover:text-slate-200'">
+            Weekly
+          </button>
+          <button (click)="setReportType('monthly')"
+            class="px-4 py-1.5 rounded-lg text-xxs font-bold uppercase transition"
+            [ngClass]="activeReportType() === 'monthly' ? 'bg-teal-500 text-white' : 'text-slate-400 hover:text-slate-200'">
+            Monthly
+          </button>
+        </div>
+      </div>
+
+      <!-- Report content -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Left: Summary Suggestions -->
+        <div class="lg:col-span-1 p-5 bg-slate-950/60 rounded-3xl border border-slate-850 space-y-4">
+          <span
+            class="px-2 py-0.5 rounded text-xxs font-extrabold bg-teal-500/10 text-teal-400 border border-teal-500/20 uppercase tracking-widest">
+            Summary View
+          </span>
+          <p class="text-xs text-slate-200 leading-relaxed font-semibold italic">"{{ report()?.summary }}"</p>
+
+          <div class="border-t border-slate-850 pt-4 space-y-3">
+            <h4 class="text-xxs font-bold uppercase tracking-widest text-slate-400">Doctor/AI Suggestions</h4>
+            <ul class="space-y-2">
+              <li *ngFor="let sug of report()?.suggestions" class="text-xs text-teal-300 flex items-start gap-2">
+                <span class="text-teal-400">•</span>
+                <span>{{ sug }}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Center: Metrics Logs list -->
+        <div class="lg:col-span-2 grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <div class="p-4 bg-slate-950/40 rounded-2xl border border-slate-850/80 flex flex-col justify-between">
+            <span class="text-xxs font-bold text-slate-400 uppercase">Sleep Target</span>
+            <div class="my-2 text-2xl font-extrabold font-mono text-white">{{ report()?.metrics?.averageSleepHours }}
+              <span class="text-xs font-semibold text-slate-400">hrs/avg</span></div>
+            <div class="text-xxs text-slate-500">Duration overnight logs</div>
+          </div>
+
+          <div class="p-4 bg-slate-950/40 rounded-2xl border border-slate-850/80 flex flex-col justify-between">
+            <span class="text-xxs font-bold text-slate-400 uppercase">Water Intake</span>
+            <div class="my-2 text-2xl font-extrabold font-mono text-white">{{ report()?.metrics?.averageWaterIntake }}
+              <span class="text-xs font-semibold text-slate-400">ml/avg</span></div>
+            <div class="text-xxs text-slate-500">Fluid aggregation metrics</div>
+          </div>
+
+          <div class="p-4 bg-slate-950/40 rounded-2xl border border-slate-850/80 flex flex-col justify-between">
+            <span class="text-xxs font-bold text-slate-400 uppercase">Calories Burned</span>
+            <div class="my-2 text-2xl font-extrabold font-mono text-white">{{ report()?.metrics?.caloriesBurned }} <span
+                class="text-xs font-semibold text-slate-400">kcal</span></div>
+            <div class="text-xxs text-slate-500">Workout activity energy</div>
+          </div>
+
+          <div class="p-4 bg-slate-950/40 rounded-2xl border border-slate-850/80 flex flex-col justify-between">
+            <span class="text-xxs font-bold text-slate-400 uppercase">Running Target</span>
+            <div class="my-2 text-2xl font-extrabold font-mono text-white">{{ report()?.metrics?.runningDistance }}
+              <span class="text-xs font-semibold text-slate-400">km</span></div>
+            <div class="text-xxs text-slate-500">Aerobic distance checks</div>
+          </div>
+
+          <div class="p-4 bg-slate-950/40 rounded-2xl border border-slate-850/80 flex flex-col justify-between">
+            <span class="text-xxs font-bold text-slate-400 uppercase">Cycling Target</span>
+            <div class="my-2 text-2xl font-extrabold font-mono text-white">{{ report()?.metrics?.cyclingDistance }}
+              <span class="text-xs font-semibold text-slate-400">km</span></div>
+            <div class="text-xxs text-slate-500">Bicycle output logs</div>
+          </div>
+
+          <div class="p-4 bg-slate-950/40 rounded-2xl border border-slate-850/80 flex flex-col justify-between">
+            <span class="text-xxs font-bold text-slate-400 uppercase">Meditation time</span>
+            <div class="my-2 text-2xl font-extrabold font-mono text-white">{{ report()?.metrics?.meditationMinutes }}
+              <span class="text-xs font-semibold text-slate-400">mins</span></div>
+            <div class="text-xxs text-slate-500">Neurological grounding logs</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HEALTH COMPARISONS BOX (Today vs Yesterday) -->
+      <div class="border-t border-slate-800/80 pt-6">
+        <h4 class="text-xs font-extrabold tracking-wider text-slate-400 uppercase mb-4">Wellness Comparison Metrics
+          (This Period vs Last)</h4>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <!-- Card: Today vs Yesterday -->
+          <div class="p-4 bg-slate-950/40 border border-slate-850/80 rounded-2xl space-y-2">
+            <span class="text-xxs font-bold text-slate-400 uppercase">Today vs Yesterday</span>
+            <div class="grid grid-cols-2 gap-2 text-xxs font-mono">
+              <div class="flex justify-between border-b border-slate-900 pb-1">
+                <span>Calories:</span>
+                <span [ngClass]="comparison()?.todayVsYesterday?.calories >= 0 ? 'text-teal-400' : 'text-red-400'">
+                  {{ getComparisonArrow(comparison()?.todayVsYesterday?.calories) }} {{
+                  comparison()?.todayVsYesterday?.calories }}%
+                </span>
+              </div>
+              <div class="flex justify-between border-b border-slate-900 pb-1">
+                <span>Sleep hrs:</span>
+                <span [ngClass]="comparison()?.todayVsYesterday?.sleep >= 0 ? 'text-teal-400' : 'text-red-400'">
+                  {{ getComparisonArrow(comparison()?.todayVsYesterday?.sleep) }} {{
+                  comparison()?.todayVsYesterday?.sleep }}%
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span>Water:</span>
+                <span [ngClass]="comparison()?.todayVsYesterday?.water >= 0 ? 'text-teal-400' : 'text-red-400'">
+                  {{ getComparisonArrow(comparison()?.todayVsYesterday?.water) }} {{
+                  comparison()?.todayVsYesterday?.water }}%
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span>Active min:</span>
+                <span [ngClass]="comparison()?.todayVsYesterday?.activeTime >= 0 ? 'text-teal-400' : 'text-red-400'">
+                  {{ getComparisonArrow(comparison()?.todayVsYesterday?.activeTime) }} {{
+                  comparison()?.todayVsYesterday?.activeTime }}%
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card: This Week vs Last Week -->
+          <div class="p-4 bg-slate-950/40 border border-slate-850/80 rounded-2xl space-y-2">
+            <span class="text-xxs font-bold text-slate-400 uppercase">This Week vs Last Week</span>
+            <div class="grid grid-cols-2 gap-2 text-xxs font-mono">
+              <div class="flex justify-between border-b border-slate-900 pb-1">
+                <span>Calories:</span>
+                <span [ngClass]="comparison()?.thisWeekVsLastWeek?.calories >= 0 ? 'text-teal-400' : 'text-red-400'">
+                  {{ getComparisonArrow(comparison()?.thisWeekVsLastWeek?.calories) }} {{
+                  comparison()?.thisWeekVsLastWeek?.calories }}%
+                </span>
+              </div>
+              <div class="flex justify-between border-b border-slate-900 pb-1">
+                <span>Sleep hrs:</span>
+                <span [ngClass]="comparison()?.thisWeekVsLastWeek?.sleep >= 0 ? 'text-teal-400' : 'text-red-400'">
+                  {{ getComparisonArrow(comparison()?.thisWeekVsLastWeek?.sleep) }} {{
+                  comparison()?.thisWeekVsLastWeek?.sleep }}%
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span>Water:</span>
+                <span [ngClass]="comparison()?.thisWeekVsLastWeek?.water >= 0 ? 'text-teal-400' : 'text-red-400'">
+                  {{ getComparisonArrow(comparison()?.thisWeekVsLastWeek?.water) }} {{
+                  comparison()?.thisWeekVsLastWeek?.water }}%
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span>Active min:</span>
+                <span [ngClass]="comparison()?.thisWeekVsLastWeek?.activeTime >= 0 ? 'text-teal-400' : 'text-red-400'">
+                  {{ getComparisonArrow(comparison()?.thisWeekVsLastWeek?.activeTime) }} {{
+                  comparison()?.thisWeekVsLastWeek?.activeTime }}%
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card: This Month vs Last Month -->
+          <div class="p-4 bg-slate-950/40 border border-slate-850/80 rounded-2xl space-y-2">
+            <span class="text-xxs font-bold text-slate-400 uppercase">This Month vs Last Month</span>
+            <div class="grid grid-cols-2 gap-2 text-xxs font-mono">
+              <div class="flex justify-between border-b border-slate-900 pb-1">
+                <span>Calories:</span>
+                <span [ngClass]="comparison()?.thisMonthVsLastMonth?.calories >= 0 ? 'text-teal-400' : 'text-red-400'">
+                  {{ getComparisonArrow(comparison()?.thisMonthVsLastMonth?.calories) }} {{
+                  comparison()?.thisMonthVsLastMonth?.calories }}%
+                </span>
+              </div>
+              <div class="flex justify-between border-b border-slate-900 pb-1">
+                <span>Sleep:</span>
+                <span [ngClass]="comparison()?.thisMonthVsLastMonth?.sleep >= 0 ? 'text-teal-400' : 'text-red-400'">
+                  {{ getComparisonArrow(comparison()?.thisMonthVsLastMonth?.sleep) }} {{
+                  comparison()?.thisMonthVsLastMonth?.sleep }}%
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span>Water:</span>
+                <span [ngClass]="comparison()?.thisMonthVsLastMonth?.water >= 0 ? 'text-teal-400' : 'text-red-400'">
+                  {{ getComparisonArrow(comparison()?.thisMonthVsLastMonth?.water) }} {{
+                  comparison()?.thisMonthVsLastMonth?.water }}%
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span>Active min:</span>
+                <span
+                  [ngClass]="comparison()?.thisMonthVsLastMonth?.activeTime >= 0 ? 'text-teal-400' : 'text-red-400'">
+                  {{ getComparisonArrow(comparison()?.thisMonthVsLastMonth?.activeTime) }} {{
+                  comparison()?.thisMonthVsLastMonth?.activeTime }}%
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: ACHIEVEMENTS / BADGES -->
+    <div *ngIf="activeTab() === 'achievements'" class="space-y-6 animate-fadeIn">
+      <div>
+        <h3 class="text-md font-bold text-teal-300">Digital Badges & Milestones</h3>
+        <p class="text-xs text-slate-400 font-medium">Verify your unlocked premium wellness awards and medals</p>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div *ngFor="let ach of achievements()"
+          class="p-5 bg-slate-950/60 rounded-3xl border border-slate-805/85 text-center flex flex-col items-center justify-between space-y-4 hover:-translate-y-1 hover:shadow-lg hover:shadow-teal-500/5 transition duration-300">
+          <div
+            class="w-16 h-16 rounded-full bg-slate-900 border border-teal-500/20 flex items-center justify-center text-3xl shadow-inner shadow-teal-500/10">
+            {{ getBadgeIcon(ach.badgeKey) }}
+          </div>
+
+          <div class="space-y-1">
+            <h4 class="text-xs font-bold text-slate-200 uppercase tracking-tight">{{ ach.title }}</h4>
+            <p class="text-xxs text-slate-400 leading-normal">{{ ach.description }}</p>
+          </div>
+
+          <span class="px-2 py-0.5 rounded bg-teal-500/10 text-teal-400 border border-teal-500/20 text-xxs font-mono">
+            Earned {{ formatDate(ach.earnedAt) }}
+          </span>
+        </div>
+
+        <!-- Empty Badge message -->
+        <div *ngIf="achievements().length === 0" class="col-span-full py-8 text-center text-slate-500 font-medium">
+          No virtual achievements earned yet. Add workouts and hydration logs to unlock milestones!
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: UNIFIED TIMELINE VIEW -->
+    <div *ngIf="activeTab() === 'timeline'" class="space-y-6 animate-fadeIn">
+      <div>
+        <h3 class="text-md font-bold text-teal-300">AI Health Twin Timeline Feed</h3>
+        <p class="text-xs text-slate-400">Unified historical record of appointments, symptom logs, workouts, sleep, and
+          weight checks</p>
+      </div>
+
+      <div class="relative pl-6 border-l border-slate-800 space-y-6">
+        <div *ngFor="let item of timeline()" class="relative group">
+          <!-- Marker dot -->
+          <div
+            class="absolute -left-[30px] top-1.5 w-4 h-4 rounded-full border border-teal-500/40 bg-slate-950 flex items-center justify-center text-xxs">
+            <span *ngIf="item.eventType === 'appointment'">📅</span>
+            <span *ngIf="item.eventType === 'symptom'">🩺</span>
+            <span *ngIf="item.eventType === 'workout'">🏋️</span>
+            <span *ngIf="item.eventType === 'running'">🏃</span>
+            <span *ngIf="item.eventType === 'cycling'">🚴</span>
+            <span *ngIf="item.eventType === 'sleep'">🛌</span>
+            <span *ngIf="item.eventType === 'water'">💧</span>
+            <span *ngIf="item.eventType === 'weight'">⚖️</span>
+          </div>
+
+          <div
+            class="p-4 bg-slate-950/40 border border-slate-850/80 rounded-2xl space-y-1 hover:bg-slate-950/70 transition duration-300">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <span class="text-xs font-bold text-slate-200 uppercase tracking-tight">{{ item.title }}</span>
+              <span class="text-xxs font-mono text-slate-500">{{ formatDate(item.date) }}</span>
+            </div>
+
+            <p class="text-xs text-slate-400 leading-normal">{{ item.description }}</p>
+
+            <div *ngIf="item.value" class="pt-1 flex items-center gap-1">
+              <span class="text-xxs px-2 py-0.5 rounded bg-slate-800 text-teal-400 font-mono font-bold">{{ item.value
+                }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="timeline().length === 0" class="py-8 text-center text-slate-500 font-medium">
+          No logs recorded in your health timeline feed.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

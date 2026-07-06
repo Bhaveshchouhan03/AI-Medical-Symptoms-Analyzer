@@ -1,0 +1,284 @@
+<div class="min-h-screen bg-doctor-theme text-slate-900 dark:text-slate-100 transition-colors duration-300 p-4 sm:p-6 pb-20 font-sans">
+  <div class="max-w-5xl mx-auto space-y-8 animate-fadeIn">
+
+  <!-- Go Back Navigation -->
+  <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-5">
+    <button (click)="goBack()"
+      class="px-4 py-2 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-sm cursor-pointer">
+      ⬅ Back to Directory
+    </button>
+
+    <!-- Favorite Toggle Button -->
+    <button (click)="toggleFavorite()"
+      class="px-4 py-2 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-sm cursor-pointer">
+      <span class="text-base" [class.text-amber-500]="isFavorite()" [class.text-slate-400]="!isFavorite()">★</span>
+      {{ isFavorite() ? 'Favorited' : 'Add to Favorites' }}
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading()" class="p-12 text-center bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-3xl animate-pulse shadow-sm">
+    <span class="text-sm text-slate-500 dark:text-slate-450 font-semibold">Loading Doctor profile...</span>
+  </div>
+
+  <!-- Main Profile Board -->
+  <div *ngIf="!isLoading() && doctor()" class="space-y-6">
+
+    <!-- 1. Header Hero Card -->
+    <div
+      class="p-6 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-3xl flex flex-col md:flex-row gap-6 items-start md:items-center relative overflow-hidden shadow-xl backdrop-blur-md">
+      <div class="absolute right-0 top-0 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl"></div>
+
+      <!-- Doctor Image -->
+      <div
+        class="w-24 h-24 rounded-2xl bg-slate-50 dark:bg-slate-955 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-4xl font-bold flex-shrink-0 text-slate-700 dark:text-slate-450">
+        👨‍⚕️
+      </div>
+
+      <!-- Info Details -->
+      <div class="space-y-2 flex-1 min-w-0">
+        <div class="flex items-center gap-3 flex-wrap">
+          <h2 class="text-xl font-extrabold text-slate-900 dark:text-white">{{ doctor()?.fullName }}</h2>
+          <!-- Verification Status -->
+          <span
+            class="px-2.5 py-0.5 rounded-full bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20 text-[9px] font-extrabold uppercase tracking-widest flex items-center gap-1 shadow-sm">
+            🛡️ Verified Specialist
+          </span>
+          <span *ngIf="doctor()?.emergencyAvailability"
+            class="px-2.5 py-0.5 rounded-full bg-red-500/10 text-red-655 dark:text-red-400 border border-red-500/20 text-[9px] font-extrabold uppercase tracking-widest">
+            🚨 Emergency Avail
+          </span>
+        </div>
+
+        <p class="text-xs text-teal-600 dark:text-teal-400 font-bold uppercase tracking-wider">{{ doctor()?.specialization }}</p>
+        <p class="text-xxs text-slate-500 dark:text-slate-400 font-semibold">{{ doctor()?.medicalDegree }} | {{ doctor()?.qualification }}
+        </p>
+
+        <div class="flex items-center gap-x-6 gap-y-1.5 text-xxs font-bold text-slate-500 pt-1.5 flex-wrap">
+          <span class="flex items-center gap-1.5">🎓 {{ doctor()?.experience }} Yrs Experience</span>
+          <span class="flex items-center gap-1.5">📍 {{ doctor()?.city }}, {{ doctor()?.state || 'NY' }}</span>
+          <span class="flex items-center gap-1.5">💵 Fee: ${{ doctor()?.consultationFee }}</span>
+          <span class="flex items-center gap-1.5">★ Rating: {{ doctor()?.rating }}/5 ({{ reviews().length }} reviews)</span>
+        </div>
+      </div>
+
+      <!-- Direct Book CTA -->
+      <div class="flex-shrink-0 self-stretch md:self-center flex flex-col justify-center">
+        <button (click)="isBookingOpen.set(true)"
+          class="w-full md:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black uppercase tracking-widest rounded-xl transition duration-300 shadow-lg shadow-blue-500/10 cursor-pointer">
+          Book Appointment
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. Split Details Columns -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- Left Column: Biography, location, clinic -->
+      <div class="lg:col-span-2 space-y-6">
+
+        <!-- Biography / About -->
+        <div class="p-6 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-3.5 shadow-xl backdrop-blur-sm">
+          <h3 class="text-xs font-black uppercase text-slate-800 dark:text-slate-400 tracking-wider border-b border-slate-100 dark:border-slate-850 pb-2">
+            Biography</h3>
+          <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-semibold">
+            {{ doctor()?.about || 'Dr. ' + doctor()?.fullName + ' is a certified ' + doctor()?.specialization + ' specializing in premium patient diagnostics, treatment scheduling, and virtual consultations. Supported by years of dedicated healthcare experience.' }}
+          </p>
+        </div>
+
+        <!-- Practice Location / Clinic Details -->
+        <div class="p-6 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-4 shadow-xl backdrop-blur-sm">
+          <h3 class="text-xs font-black uppercase text-slate-800 dark:text-slate-400 tracking-wider border-b border-slate-100 dark:border-slate-850 pb-2">Location
+            & Clinic</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xxs text-slate-600 dark:text-slate-350 leading-relaxed">
+            <div class="space-y-1.5">
+              <span class="font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider block">Clinic & Hospital</span>
+              <p class="text-slate-900 dark:text-white font-extrabold text-xs">{{ doctor()?.clinicName || 'MedCare Diagnostic Clinic' }}</p>
+              <p class="text-slate-500 dark:text-slate-400">{{ doctor()?.hospitalName }}</p>
+              <p class="text-slate-500 dark:text-slate-400">{{ doctor()?.clinicAddress || '120 Broadway, Manhattan, NY 10005' }}</p>
+            </div>
+
+            <div
+              class="space-y-2 bg-slate-50 dark:bg-slate-950 p-4 border border-slate-200 dark:border-slate-850 rounded-2xl relative overflow-hidden flex flex-col justify-center min-h-[100px] shadow-sm">
+              <span class="text-xl relative block text-center">🗺️</span>
+              <span
+                class="text-[9px] font-bold text-blue-600 dark:text-blue-400 tracking-wider uppercase text-center relative mt-1">Simulated
+                GPS Coordinates</span>
+              <span class="text-[8px] text-slate-500 dark:text-slate-500 font-mono text-center relative mt-0.5">{{
+                doctor()?.googleMapsLocation || 'Latitude: 40.7081° N, Longitude: -74.0094° W' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Achievements & Certificates -->
+        <div class="p-6 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-4 shadow-xl backdrop-blur-sm">
+          <h3 class="text-xs font-black uppercase text-slate-800 dark:text-slate-400 tracking-wider border-b border-slate-100 dark:border-slate-850 pb-2">
+            Achievements & Certificates</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xxs">
+            <div class="space-y-2">
+              <span class="font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider block">Achievements</span>
+              <ul class="list-disc pl-4 text-slate-700 dark:text-slate-300 space-y-1 font-semibold"
+                *ngIf="doctor()?.achievements && doctor()?.achievements!.length > 0">
+                <li *ngFor="let ach of doctor()?.achievements">{{ ach }}</li>
+              </ul>
+              <p class="text-slate-500 font-semibold italic"
+                *ngIf="!doctor()?.achievements || doctor()?.achievements!.length === 0">No achievements uploaded.</p>
+            </div>
+
+            <div class="space-y-2">
+              <span class="font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider block">Certificates</span>
+              <ul class="list-disc pl-4 text-slate-700 dark:text-slate-300 space-y-1 font-semibold"
+                *ngIf="doctor()?.certificates && doctor()?.certificates!.length > 0">
+                <li *ngFor="let cert of doctor()?.certificates">{{ cert }}</li>
+              </ul>
+              <p class="text-slate-500 font-semibold italic"
+                *ngIf="!doctor()?.certificates || doctor()?.certificates!.length === 0">No certs cataloged.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Scheduling & working schedules -->
+      <div class="space-y-6">
+
+        <!-- Available Times Schedule -->
+        <div class="p-6 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-4 shadow-xl backdrop-blur-sm">
+          <h3 class="text-xs font-black uppercase text-slate-800 dark:text-slate-400 tracking-wider border-b border-slate-100 dark:border-slate-850 pb-2">
+            Consultation Schedule</h3>
+
+          <div class="space-y-3.5 text-xxs">
+            <!-- Available Days -->
+            <div class="space-y-1.5">
+              <span class="font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider block">Working Days</span>
+              <div class="flex flex-wrap gap-1.5">
+                <span *ngFor="let day of doctor()?.availableDays"
+                  class="px-2 py-0.5 bg-slate-50 dark:bg-slate-955 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-850 rounded text-[9px] uppercase tracking-wide font-extrabold">
+                  {{ day }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Available slots -->
+            <div class="space-y-1.5">
+              <span class="font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider block">Time Slots</span>
+              <div class="grid grid-cols-3 gap-1.5">
+                <span *ngFor="let slot of doctor()?.availableTimeSlots"
+                  class="px-1.5 py-1 bg-slate-50 dark:bg-slate-955 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-850 rounded text-[8px] text-center font-extrabold uppercase">
+                  {{ slot }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Consultation channels -->
+            <div class="space-y-1.5 pt-1.5 border-t border-slate-100 dark:border-slate-850">
+              <span class="font-bold text-slate-500 dark:text-slate-500 uppercase tracking-wider block">Channels Supported</span>
+              <div class="flex items-center gap-2 mt-1">
+                <span class="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase border"
+                  [class]="doctor()?.onlineConsultation ? 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20' : 'bg-slate-50 dark:bg-slate-850 text-slate-450 dark:text-slate-500 border-slate-200 dark:border-slate-900'">
+                  🌐 Online (Video)
+                </span>
+                <span class="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase border"
+                  [class]="doctor()?.offlineConsultation ? 'bg-purple-500/10 text-purple-650 dark:text-purple-400 border-purple-500/20' : 'bg-slate-50 dark:bg-slate-850 text-slate-450 dark:text-slate-500 border-slate-200 dark:border-slate-900'">
+                  🏥 In-Clinic
+                </span>
+              </div>
+            </div>
+
+            <div class="pt-1 text-[10px] text-slate-500 dark:text-slate-450 font-semibold italic flex items-center gap-1.5">
+              <span>👨‍👩‍👧‍👦</span> Daily Limit: Max {{ doctor()?.maxPatientsPerDay || 30 }} consultations per day.
+            </div>
+          </div>
+        </div>
+
+        <!-- Languages spoken -->
+        <div class="p-6 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-3.5 shadow-xl backdrop-blur-sm">
+          <h3 class="text-xs font-black uppercase text-slate-800 dark:text-slate-400 tracking-wider border-b border-slate-100 dark:border-slate-850 pb-2">
+            Languages Spoken</h3>
+          <div class="flex flex-wrap gap-1.5">
+            <span *ngFor="let lang of doctor()?.languages"
+              class="px-2.5 py-1 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 rounded-xl text-[9px] font-black uppercase">
+              🗣️ {{ lang }}
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- 3. Reviews & ratings Board -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- Left Column: Add review form -->
+      <div
+        class="p-6 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-4 shadow-xl backdrop-blur-sm self-start">
+        <h3 class="text-xs font-black uppercase text-slate-800 dark:text-slate-400 tracking-wider border-b border-slate-100 dark:border-slate-850 pb-2">Submit
+          Patient Review</h3>
+
+        <div class="space-y-4">
+          <!-- Interactive Stars selection -->
+          <div class="space-y-1">
+            <span class="block text-xxs font-bold uppercase text-slate-500 dark:text-slate-550 tracking-wider">Select Rating Star</span>
+            <div class="flex items-center gap-1">
+              <button *ngFor="let star of [1, 2, 3, 4, 5]" (click)="setRating(star)" type="button"
+                class="text-lg transition cursor-pointer" [class.text-amber-500]="reviewRating() >= star"
+                [class.text-slate-300]="reviewRating() < star" [class.dark:text-slate-700]="reviewRating() < star">
+                ★
+              </button>
+            </div>
+          </div>
+
+          <!-- Review Text -->
+          <div class="space-y-1.5">
+            <label for="reviewCommentInput"
+              class="block text-xxs font-bold uppercase text-slate-500 dark:text-slate-550 tracking-wider">Your Consultation Feedback</label>
+            <textarea id="reviewCommentInput" [(ngModel)]="reviewText" rows="3"
+              placeholder="Provide comments about clinical guidance, timing slots..."
+              class="w-full px-3 py-2 bg-white dark:bg-slate-955 border border-slate-200 dark:border-slate-850 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+          </div>
+
+          <button (click)="submitReview()"
+            class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xxs font-extrabold uppercase tracking-widest rounded-xl transition duration-300 shadow-md shadow-blue-500/10 cursor-pointer">
+            Submit Rating
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Column: Reviews feeds -->
+      <div
+        class="lg:col-span-2 p-6 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-4 shadow-xl backdrop-blur-sm">
+        <h3 class="text-xs font-black uppercase text-slate-800 dark:text-slate-400 tracking-wider border-b border-slate-100 dark:border-slate-850 pb-2">Patient
+          Feedback Board</h3>
+
+        <!-- Empty feedback -->
+        <div *ngIf="reviews().length === 0" class="p-8 text-center border border-slate-200 dark:border-slate-850 bg-slate-50/50 dark:bg-slate-950/40 rounded-2xl shadow-inner">
+          <span class="text-2xl block">💬</span>
+          <p class="text-xxs text-slate-500 dark:text-slate-500 font-semibold mt-2">No patient reviews submitted yet. Be the first to
+            review!</p>
+        </div>
+
+        <div *ngIf="reviews().length > 0" class="space-y-3.5 max-h-[350px] overflow-y-auto pr-2 scrollbar-thin">
+          <div *ngFor="let r of reviews()"
+            class="p-4 bg-slate-55/50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-850 rounded-2xl space-y-1.5 shadow-sm text-xxs text-slate-700 dark:text-slate-300">
+            <div class="flex items-center justify-between">
+              <span class="font-extrabold text-slate-900 dark:text-white">👤 {{ r.patientName || 'Patient' }}</span>
+              <span class="text-amber-500 font-bold">★ {{ r.rating }}/5</span>
+            </div>
+            <p class="text-slate-500 dark:text-slate-450 font-semibold leading-relaxed italic">"{{ r.reviewText || 'No comments registered.' }}"</p>
+            <div class="text-[9px] text-slate-500 dark:text-slate-500 font-medium pt-0.5">Reviewed on: {{ r.createdAt | date:'mediumDate' }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Booking Modal Integration -->
+  <app-booking-modal [doctor]="doctor()" [isOpen]="isBookingOpen()" (close)="isBookingOpen.set(false)"
+    (booked)="loadDoctorDetails(doctor()!._id)">
+  </app-booking-modal>
+
+</div>
+</div>

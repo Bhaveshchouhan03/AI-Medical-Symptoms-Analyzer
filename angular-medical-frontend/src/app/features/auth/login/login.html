@@ -1,0 +1,155 @@
+<div class="min-h-screen flex bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
+  <!-- Left decorative panel -->
+  <div
+    class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 via-indigo-700 to-teal-600 flex-col justify-between p-12 relative overflow-hidden shadow-2xl">
+    <div class="absolute -right-8 -top-8 w-80 h-80 bg-white/5 rounded-full blur-3xl"></div>
+    <div class="absolute -left-12 -bottom-12 w-64 h-64 bg-teal-400/5 rounded-full blur-2xl"></div>
+
+    <div class="flex items-center gap-3 relative z-10">
+      <div class="w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+      </div>
+      <span class="text-white text-2xl font-bold tracking-wide">MedCare</span>
+    </div>
+
+    <div class="relative z-10">
+      <h1 class="text-white text-5xl font-black leading-tight mb-4 tracking-tight">
+        Welcome back to<br />your health portal
+      </h1>
+      <p class="text-slate-100 text-lg leading-relaxed font-medium max-w-lg">
+        Access your medical records, consultations schedules, and diagnostics tools — all in one secure, unified space.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-3 gap-4 relative z-10">
+      <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 text-white text-center border border-white/15">
+        <div class="text-2xl font-black">500+</div>
+        <div class="text-xs text-slate-100 font-semibold mt-0.5">Specialists</div>
+      </div>
+      <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 text-white text-center border border-white/15">
+        <div class="text-2xl font-black">50k+</div>
+        <div class="text-xs text-slate-100 font-semibold mt-0.5">Patients</div>
+      </div>
+      <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 text-white text-center border border-white/15">
+        <div class="text-2xl font-black">24/7</div>
+        <div class="text-xs text-slate-100 font-semibold mt-0.5">Vitals Sync</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right login form -->
+  <div class="w-full lg:w-1/2 flex items-center justify-center p-8 bg-slate-50 dark:bg-slate-950">
+    <div class="w-full max-w-md">
+
+      <!-- Mobile logo -->
+      <div class="flex items-center gap-2 mb-8 lg:hidden">
+        <svg class="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+        <span class="text-slate-900 dark:text-white text-xl font-bold tracking-wide">MedCare</span>
+      </div>
+
+      <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 p-8 sm:p-10 transition-colors duration-300">
+        <div class="mb-8">
+          <h2 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Sign in</h2>
+          <p class="text-slate-500 dark:text-slate-400 mt-1 text-sm">Enter your credentials to continue</p>
+        </div>
+
+        <!-- Error alert -->
+        @if (errorMessage()) {
+        <div class="mb-6 flex items-start gap-3 bg-red-500/10 border border-red-500/20 text-red-750 dark:text-red-300 rounded-2xl p-4">
+          <svg class="w-5 h-5 mt-0.5 flex-shrink-0 text-red-555" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+              clip-rule="evenodd" />
+          </svg>
+          <span class="text-xs font-semibold leading-normal">{{ errorMessage() }}</span>
+        </div>
+        }
+
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+          <!-- Email -->
+          <div class="mb-5">
+            <label for="email" class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
+              Email address
+            </label>
+            <input id="email" type="email" formControlName="email" autocomplete="email" placeholder="you@example.com"
+              class="w-full px-4 py-3 border rounded-xl text-sm transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400"
+              [class.border-red-500]="email.invalid && email.touched"
+              [class.border-slate-200]="!(email.invalid && email.touched)"
+              [class.dark:border-slate-700]="!(email.invalid && email.touched)" />
+            @if (email.invalid && email.touched) {
+            <p class="mt-1.5 text-xs text-red-500 font-semibold">
+              @if (email.errors?.['required']) { Email is required. }
+              @else if (email.errors?.['email']) { Enter a valid email address. }
+            </p>
+            }
+          </div>
+
+          <!-- Password -->
+          <div class="mb-6">
+            <label for="password" class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
+              Password
+            </label>
+            <div class="relative">
+              <input id="password" [type]="showPassword() ? 'text' : 'password'" formControlName="password"
+                autocomplete="current-password" placeholder="••••••••"
+                class="w-full px-4 py-3 pr-12 border rounded-xl text-sm transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400"
+                [class.border-red-500]="password.invalid && password.touched"
+                [class.border-slate-200]="!(password.invalid && password.touched)"
+                [class.dark:border-slate-700]="!(password.invalid && password.touched)" />
+              <button type="button" (click)="togglePassword()"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-650 dark:text-slate-500 dark:hover:text-slate-350 transition flex items-center justify-center cursor-pointer"
+                [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'">
+                @if (showPassword()) {
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                </svg>
+                } @else {
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                }
+              </button>
+            </div>
+            @if (password.invalid && password.touched) {
+            <p class="mt-1.5 text-xs text-red-500 font-semibold">
+              @if (password.errors?.['required']) { Password is required. }
+              @else if (password.errors?.['minlength']) { Password must be at least 6 characters. }
+            </p>
+            }
+          </div>
+
+          <!-- Submit -->
+          <button type="submit" [disabled]="isLoading()"
+            class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-650 hover:scale-[1.01] hover:shadow-lg disabled:from-slate-300 disabled:to-slate-400 dark:disabled:from-slate-800 dark:disabled:to-slate-850 disabled:text-slate-500 dark:disabled:text-slate-450 disabled:scale-100 disabled:shadow-none text-white font-bold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-center gap-2 cursor-pointer shadow-md">
+            @if (isLoading()) {
+            <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            Signing in...
+            } @else {
+            Sign in
+            }
+          </button>
+        </form>
+
+        <p class="mt-6 text-center text-sm text-slate-550 dark:text-slate-400">
+          Don't have an account?
+          <a routerLink="/signup" class="text-blue-600 dark:text-blue-400 font-bold hover:underline ml-1">
+            Create one
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

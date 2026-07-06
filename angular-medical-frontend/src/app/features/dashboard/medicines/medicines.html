@@ -1,0 +1,398 @@
+<div class="min-h-screen bg-medicine-theme transition-colors duration-300 p-4 sm:p-6 pb-20">
+  <div class="space-y-6 max-w-7xl mx-auto">
+
+  <!-- ════════════ HEADER SECTION ════════════ -->
+  <div
+    class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-blue-600 to-teal-500 rounded-3xl p-6 sm:p-8 text-white shadow-lg relative overflow-hidden">
+    <div class="z-10">
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">{{ t().title }}</h1>
+      <p class="text-blue-100 text-sm mt-1 max-w-xl">
+        {{ t().subtitle }}
+      </p>
+    </div>
+
+    <div class="z-10 flex flex-col md:items-end gap-2">
+      <!-- Language Selector Toggles -->
+      <div class="bg-white/10 backdrop-blur-sm border border-white/20 p-1 rounded-2xl flex gap-1 text-xs">
+        <button (click)="setLanguage('en')" class="px-3 py-1.5 rounded-xl font-bold transition cursor-pointer"
+          [class.bg-white]="currentLang() === 'en'" [class.text-blue-700]="currentLang() === 'en'"
+          [class.text-white]="currentLang() !== 'en'">
+          English
+        </button>
+        <button (click)="setLanguage('hi')" class="px-3 py-1.5 rounded-xl font-bold transition cursor-pointer"
+          [class.bg-white]="currentLang() === 'hi'" [class.text-blue-700]="currentLang() === 'hi'"
+          [class.text-white]="currentLang() !== 'hi'">
+          हिंदी
+        </button>
+        <button (click)="setLanguage('hinglish')" class="px-3 py-1.5 rounded-xl font-bold transition cursor-pointer"
+          [class.bg-white]="currentLang() === 'hinglish'" [class.text-blue-700]="currentLang() === 'hinglish'"
+          [class.text-white]="currentLang() !== 'hinglish'">
+          Hinglish
+        </button>
+      </div>
+      <div class="flex-shrink-0 text-4xl hidden md:block select-none animate-pulse mt-1">💊</div>
+    </div>
+
+    <!-- Decorative background elements -->
+    <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
+  </div>
+
+  <!-- ════════════ EDUCATIONAL DISCLAIMER ════════════ -->
+  <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
+    <span class="text-amber-500 text-xl flex-shrink-0 mt-0.5">⚠️</span>
+    <div>
+      <h4 class="font-bold text-amber-800 text-sm">{{ t().disclaimerHeader }}</h4>
+      <p class="text-xs text-amber-700 leading-relaxed mt-0.5">
+        {{ t().disclaimerBody }}
+      </p>
+    </div>
+  </div>
+
+  <!-- ════════════ SUMMARY STATS CARDS ════════════ -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Card 1: Total Medicines -->
+    <div
+      class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4 hover:shadow-md transition">
+      <div
+        class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-2xl font-bold flex-shrink-0">
+        💊
+      </div>
+      <div>
+        <p class="text-xs text-gray-400 font-semibold uppercase">{{ t().totalMedicines }}</p>
+        <h3 class="text-2xl font-bold text-gray-800 mt-0.5">
+          {{ isStatsLoading() ? '...' : (stats()?.totalMedicines || 0) }}
+        </h3>
+      </div>
+    </div>
+
+    <!-- Card 2: Categories count -->
+    <div
+      class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4 hover:shadow-md transition">
+      <div
+        class="w-12 h-12 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center text-2xl font-bold flex-shrink-0">
+        📂
+      </div>
+      <div>
+        <p class="text-xs text-gray-400 font-semibold uppercase">{{ t().categories }}</p>
+        <h3 class="text-2xl font-bold text-gray-800 mt-0.5">
+          {{ isStatsLoading() ? '...' : (stats()?.totalCategories || 0) }}
+        </h3>
+      </div>
+    </div>
+
+    <!-- Card 3: Most Bookmarked Preview -->
+    <div
+      class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4 hover:shadow-md transition col-span-1 lg:col-span-2 overflow-hidden">
+      <div
+        class="w-12 h-12 bg-rose-50 text-rose-500 rounded-xl flex items-center justify-center text-2xl font-bold flex-shrink-0">
+        ⭐
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-xs text-gray-400 font-semibold uppercase">{{ t().popularSearched }}</p>
+        <div class="flex gap-2 mt-1.5 overflow-x-auto pb-1 no-scrollbar">
+          @if (isStatsLoading()) {
+          <span class="text-xs text-gray-400">Loading popular...</span>
+          } @else {
+          @for (med of stats()?.mostSearched; track med._id) {
+          <a [routerLink]="['/dashboard/medicines', med._id]"
+            class="px-2.5 py-1 bg-gray-50 border border-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-colors whitespace-nowrap block">
+            {{ med.brandName }}
+          </a>
+          } @empty {
+          <span class="text-xs text-gray-400">None yet</span>
+          }
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ MAIN LAYOUT: SIDEBAR FILTERS + RESULTS GRID ════════════ -->
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+    <!-- ── LEFT SIDEBAR: FILTERS ── -->
+    <div class="space-y-4 lg:col-span-1">
+
+      <!-- Category Filter List -->
+      <div class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+          <h3 class="font-bold text-gray-900 flex items-center gap-2 text-sm sm:text-base">
+            <span>📁</span> {{ t().categoriesTitle }}
+          </h3>
+          @if (selectedCategory()) {
+          <button (click)="selectCategory('')"
+            class="text-xs font-bold text-blue-600 hover:text-blue-800 transition cursor-pointer">
+            {{ t().clearFilters }}
+          </button>
+          }
+        </div>
+
+        <div class="space-y-1 max-h-[350px] lg:max-h-none overflow-y-auto pr-1">
+          <button (click)="selectCategory('')"
+            class="w-full text-left px-3 py-2 text-xs sm:text-sm rounded-xl transition font-medium flex items-center justify-between cursor-pointer"
+            [class.bg-blue-50]="!selectedCategory()" [class.text-blue-700]="!selectedCategory()"
+            [class.text-gray-600]="selectedCategory()" [class.hover:bg-gray-50]="selectedCategory()">
+            <span>{{ t().allCategories }}</span>
+            <span class="text-xs opacity-60">📁</span>
+          </button>
+
+          @for (cat of categories; track cat) {
+          <button (click)="selectCategory(cat)"
+            class="w-full text-left px-3 py-2 text-xs sm:text-sm rounded-xl transition font-medium flex items-center justify-between cursor-pointer"
+            [class.bg-blue-50]="selectedCategory() === cat" [class.text-blue-700]="selectedCategory() === cat"
+            [class.text-gray-600]="selectedCategory() !== cat" [class.hover:bg-gray-50]="selectedCategory() !== cat">
+            <span class="truncate">{{ cat }}</span>
+            <span class="text-xs opacity-60">›</span>
+          </button>
+          }
+        </div>
+      </div>
+
+      <!-- Bookmarks Toggle Option -->
+      <button (click)="toggleBookmarksFilter()"
+        class="w-full bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex items-center justify-between hover:shadow-md transition text-left cursor-pointer"
+        [class.border-blue-300]="showOnlyBookmarks()" [class.bg-blue-50/50]="showOnlyBookmarks()">
+        <div class="flex items-center gap-3">
+          <span class="text-lg">{{ showOnlyBookmarks() ? '⭐' : '☆' }}</span>
+          <div>
+            <h4 class="font-bold text-gray-800 text-sm">{{ t().savedMedicines }}</h4>
+            <p class="text-xs text-gray-400 mt-0.5">{{ t().savedSub }}</p>
+          </div>
+        </div>
+        <div class="w-8 h-8 rounded-full flex items-center justify-center" [class.bg-blue-100]="showOnlyBookmarks()"
+          [class.bg-gray-100]="!showOnlyBookmarks()">
+          <span class="text-xs font-bold" [class.text-blue-700]="showOnlyBookmarks()"
+            [class.text-gray-500]="!showOnlyBookmarks()">
+            {{ bookmarkedIds().size }}
+          </span>
+        </div>
+      </button>
+
+      <!-- Recently Viewed List Preview -->
+      @if (stats()?.recentlyViewed?.length) {
+      <div class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-3 hidden lg:block">
+        <h4 class="font-bold text-gray-800 text-sm flex items-center gap-2 border-b border-gray-100 pb-2">
+          <span>🕒</span> {{ t().recentlyViewed }}
+        </h4>
+        <div class="space-y-2">
+          @for (med of stats()?.recentlyViewed; track med._id) {
+          <a [routerLink]="['/dashboard/medicines', med._id]"
+            class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-xl transition">
+            <div class="w-8 h-8 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center font-bold text-sm">
+              💊
+            </div>
+            <div class="min-w-0">
+              <p class="text-xs font-bold text-gray-800 truncate">{{ med.brandName }}</p>
+              <p class="text-[10px] text-gray-400 truncate">{{ med.genericName }}</p>
+            </div>
+          </a>
+          }
+        </div>
+      </div>
+      }
+
+    </div>
+
+    <!-- ── RIGHT MAIN PANEL: SEARCH + GRID ── -->
+    <div class="space-y-6 lg:col-span-3">
+
+      <!-- Search Section -->
+      <div class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-4">
+        <div>
+          <label for="medSearch" class="block text-xs font-bold text-gray-700 uppercase mb-1.5">{{ t().searchLabel
+            }}</label>
+          <div class="relative">
+            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg">🔍</span>
+            <input id="medSearch" type="text" [placeholder]="t().searchPlaceholder" [ngModel]="searchQuery()"
+              (ngModelChange)="onSearch($event)"
+              class="w-full pl-11 pr-10 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+            @if (searchQuery()) {
+            <button (click)="clearSearch()"
+              class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm font-semibold cursor-pointer">
+              ✕
+            </button>
+            }
+          </div>
+        </div>
+
+        <!-- Suggestion tags -->
+        <div class="flex flex-wrap items-center gap-1.5 text-xs">
+          <span class="text-gray-400 font-bold uppercase text-[10px]">{{ t().popularSearched }}:</span>
+          @for (sug of searchSuggestions; track sug) {
+          <button (click)="onSearch(sug)"
+            class="px-2.5 py-1 bg-gray-50 hover:bg-blue-50 border border-gray-200 text-gray-600 hover:text-blue-600 hover:border-blue-200 rounded-full transition-colors cursor-pointer">
+            {{ sug }}
+          </button>
+          }
+        </div>
+      </div>
+
+      <!-- Filters Active Banner -->
+      @if (selectedCategory() || searchQuery() || showOnlyBookmarks()) {
+      <div class="flex items-center justify-between bg-blue-50/50 border border-blue-100 px-4 py-2.5 rounded-xl">
+        <div class="flex flex-wrap items-center gap-2 text-xs text-blue-800">
+          <span>Filters:</span>
+          @if (selectedCategory()) {
+          <span class="bg-blue-100 px-2 py-0.5 rounded-full font-bold">Category: {{ selectedCategory() }}</span>
+          }
+          @if (searchQuery()) {
+          <span class="bg-blue-100 px-2 py-0.5 rounded-full font-bold">Query: "{{ searchQuery() }}"</span>
+          }
+          @if (showOnlyBookmarks()) {
+          <span class="bg-blue-100 px-2 py-0.5 rounded-full font-bold">★ Bookmarked Only</span>
+          }
+        </div>
+        <button (click)="selectCategory(''); clearSearch(); showOnlyBookmarks.set(false); loadMedicines()"
+          class="text-xs text-blue-600 hover:text-blue-800 font-bold transition-all cursor-pointer">
+          {{ t().clearFilters }}
+        </button>
+      </div>
+      }
+
+      <!-- Grid list / Skeletons -->
+      @if (isLoading()) {
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        @for (i of [1,2,3,4]; track i) {
+        <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm animate-pulse space-y-4">
+          <div class="flex items-start justify-between gap-4">
+            <div class="w-16 h-16 bg-gray-200 rounded-xl"></div>
+            <div class="flex-1 space-y-2">
+              <div class="h-4 bg-gray-200 rounded w-2/3"></div>
+              <div class="h-3 bg-gray-100 rounded w-1/2"></div>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <div class="h-3 bg-gray-100 rounded w-full"></div>
+            <div class="h-3 bg-gray-100 rounded w-5/6"></div>
+          </div>
+          <div class="flex gap-2 items-center justify-between pt-2">
+            <div class="h-4 bg-gray-100 rounded w-16"></div>
+            <div class="h-9 bg-gray-200 rounded w-28"></div>
+          </div>
+        </div>
+        }
+      </div>
+      } @else {
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        @for (med of medicines(); track med._id) {
+        <div
+          class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden">
+
+          <!-- Card Header -->
+          <div>
+            <div class="flex items-start justify-between gap-4">
+              <!-- Medicine Image/Icon wrapper -->
+              <div
+                class="w-16 h-16 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center text-3xl font-bold flex-shrink-0 relative overflow-hidden">
+                @if (med.image) {
+                <img [src]="med.image" (error)="med.image = ''" alt="Med Image"
+                  class="w-full h-full object-cover rounded-2xl" />
+                } @else {
+                💊
+                }
+              </div>
+
+              <!-- Details basic -->
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+                    {{ med.category }}
+                  </span>
+                  @if (med.prescriptionRequired) {
+                  <span
+                    class="text-[10px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded-md border border-red-100">
+                    Prescription Rx
+                  </span>
+                  }
+                </div>
+                <h3
+                  class="font-extrabold text-gray-900 mt-1 truncate group-hover:text-blue-600 transition-colors text-sm sm:text-base">
+                  {{ med.brandName }}
+                </h3>
+                <p class="text-xs text-gray-400 font-semibold truncate">{{ med.medicineName }}</p>
+              </div>
+            </div>
+
+            <!-- Generic label / Manufacturer -->
+            <div class="mt-4 space-y-1">
+              <p class="text-xs text-gray-500"><span class="font-bold text-gray-700">Generic:</span> {{ med.genericName
+                }}</p>
+              <p class="text-xs text-gray-500 truncate"><span class="font-bold text-gray-700">Maker:</span> {{
+                med.manufacturer }}</p>
+            </div>
+
+            <!-- Short description -->
+            <p class="text-xs text-gray-400 mt-3 line-clamp-2 leading-relaxed">
+              {{ med.description }}
+            </p>
+          </div>
+
+          <!-- Action buttons footer -->
+          <div class="flex items-center justify-between border-t border-gray-50 pt-4 mt-4">
+            <!-- Form specifications -->
+            <span class="text-[11px] font-bold text-gray-500 flex items-center gap-1">
+              <span>📦</span> {{ med.availableForms[0] || 'Tablet' }}
+            </span>
+
+            <!-- Action links -->
+            <div class="flex items-center gap-2">
+              <button (click)="toggleBookmark($event, med)"
+                class="w-9 h-9 border border-gray-200 hover:border-rose-200 text-gray-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl flex items-center justify-center transition cursor-pointer"
+                [class.border-rose-200]="bookmarkedIds().has(med._id)"
+                [class.text-rose-500]="bookmarkedIds().has(med._id)" [class.bg-rose-50]="bookmarkedIds().has(med._id)">
+                ⭐
+              </button>
+
+              <a [routerLink]="['/dashboard/medicines', med._id]"
+                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition shadow-sm hover:shadow">
+                {{ t().viewDetails }}
+              </a>
+            </div>
+          </div>
+        </div>
+        } @empty {
+        <div class="bg-white border border-gray-100 rounded-3xl p-10 text-center col-span-2 space-y-2">
+          <span class="text-4xl select-none">🔍</span>
+          <h3 class="font-extrabold text-gray-800">{{ t().noMedicines }}</h3>
+          <p class="text-xs text-gray-400 max-w-sm mx-auto">
+            {{ t().noMedicinesSub }}
+          </p>
+        </div>
+        }
+      </div>
+      }
+
+      <!-- Pagination controls -->
+      @if (totalPages() > 1 && !isLoading()) {
+      <div class="flex items-center justify-center gap-2 pt-4">
+        <button [disabled]="currentPage() === 1" (click)="setPage(currentPage() - 1)"
+          class="px-3.5 py-2 border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-transparent transition cursor-pointer">
+          Previous
+        </button>
+
+        <div class="flex items-center gap-1.5 text-xs font-bold">
+          @for (p of [].constructor(totalPages()); track idx; let idx = $index) {
+          <button (click)="setPage(idx + 1)"
+            class="w-9 h-9 rounded-xl transition flex items-center justify-center border cursor-pointer"
+            [class.bg-blue-600]="currentPage() === idx + 1" [class.text-white]="currentPage() === idx + 1"
+            [class.border-blue-600]="currentPage() === idx + 1" [class.bg-white]="currentPage() !== idx + 1"
+            [class.text-gray-700]="currentPage() !== idx + 1" [class.border-gray-200]="currentPage() !== idx + 1"
+            [class.hover:bg-gray-50]="currentPage() !== idx + 1">
+            {{ idx + 1 }}
+          </button>
+          }
+        </div>
+
+        <button [disabled]="currentPage() === totalPages()" (click)="setPage(currentPage() + 1)"
+          class="px-3.5 py-2 border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-transparent transition cursor-pointer">
+          Next
+        </button>
+      </div>
+      }
+
+    </div>
+
+  </div>
+
+</div>
+</div>

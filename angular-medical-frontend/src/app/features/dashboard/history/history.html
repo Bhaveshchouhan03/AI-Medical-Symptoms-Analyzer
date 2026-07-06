@@ -1,0 +1,267 @@
+<div class="min-h-screen bg-reports-theme transition-colors duration-300 p-4 sm:p-6 pb-20">
+  <div class="max-w-5xl mx-auto space-y-6">
+
+  <!-- ── Page header ── -->
+  <div class="flex items-center justify-between mb-8 border-b border-slate-200 dark:border-slate-800 pb-5">
+    <div>
+      <div class="flex items-center gap-3 mb-1">
+        <div class="w-9 h-9 bg-violet-100 rounded-xl flex items-center justify-center">
+          <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        </div>
+        <h1 class="text-2xl font-bold text-gray-900">My Health Reports</h1>
+      </div>
+      <p class="text-gray-500 text-sm ml-12">All your submitted symptom reports in one place.</p>
+    </div>
+    <a routerLink="/dashboard/symptom-checker"
+      class="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      New Report
+    </a>
+  </div>
+
+  <!-- ── Loading ── -->
+  @if (isLoading()) {
+  <div class="flex flex-col items-center justify-center py-20 text-center">
+    <svg class="w-10 h-10 text-violet-500 animate-spin mb-4" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+    </svg>
+    <p class="text-gray-500 font-medium">Loading your reports…</p>
+  </div>
+  }
+
+  <!-- ── Error ── -->
+  @if (!isLoading() && error()) {
+  <div class="bg-red-50 border border-red-200 rounded-2xl p-6 flex items-start gap-4">
+    <svg class="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+      <path fill-rule="evenodd"
+        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+        clip-rule="evenodd" />
+    </svg>
+    <div>
+      <p class="font-semibold text-red-800">Failed to load reports</p>
+      <p class="text-sm text-red-600 mt-0.5">{{ error() }}</p>
+      <button (click)="loadForms()" class="mt-3 text-sm font-medium text-red-700 underline">Try again</button>
+    </div>
+  </div>
+  }
+
+  @if (!isLoading() && !error()) {
+
+  <!-- ── Stats row ── -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+      <p class="text-2xl font-bold text-gray-900">{{ stats().total }}</p>
+      <p class="text-xs text-gray-400 mt-0.5">Total Reports</p>
+    </div>
+    <div class="bg-yellow-50 rounded-2xl p-4 border border-yellow-100 shadow-sm">
+      <p class="text-2xl font-bold text-yellow-700">{{ stats().pending }}</p>
+      <p class="text-xs text-yellow-500 mt-0.5">Pending Review</p>
+    </div>
+    <div class="bg-blue-50 rounded-2xl p-4 border border-blue-100 shadow-sm">
+      <p class="text-2xl font-bold text-blue-700">{{ stats().reviewed }}</p>
+      <p class="text-xs text-blue-400 mt-0.5">Reviewed</p>
+    </div>
+    <div class="bg-violet-50 rounded-2xl p-4 border border-violet-100 shadow-sm">
+      <p class="text-2xl font-bold text-violet-700">{{ stats().withAi }}</p>
+      <p class="text-xs text-violet-400 mt-0.5">AI Analyzed</p>
+    </div>
+  </div>
+
+  <!-- ── Filters + Search ── -->
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-6 flex flex-wrap items-center gap-3">
+
+    <!-- Search -->
+    <div class="relative flex-1 min-w-[200px]">
+      <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor"
+        viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+      <input type="search" placeholder="Search symptoms, notes…" (input)="onSearch($event)"
+        class="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent bg-gray-50" />
+    </div>
+
+    <!-- Status filter chips -->
+    <div class="flex gap-2 flex-wrap">
+      @for (f of filterOptions; track f.value) {
+      <button (click)="setFilter(f.value)" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition border"
+        [class.bg-violet-600]="filterStatus() === f.value" [class.text-white]="filterStatus() === f.value"
+        [class.border-violet-600]="filterStatus() === f.value" [class.bg-white]="filterStatus() !== f.value"
+        [class.text-gray-600]="filterStatus() !== f.value" [class.border-gray-200]="filterStatus() !== f.value">
+        {{ f.label }}
+      </button>
+      }
+    </div>
+
+    <!-- Sort -->
+    <select (change)="setSort($any($event.target).value)"
+      class="px-3 py-2 text-sm border border-gray-200 rounded-xl bg-white text-gray-600 focus:outline-none focus:ring-2 focus:ring-violet-500">
+      @for (s of sortOptions; track s.value) {
+      <option [value]="s.value">{{ s.label }}</option>
+      }
+    </select>
+  </div>
+
+  <!-- ── Empty state ── -->
+  @if (filteredForms().length === 0 && allForms().length === 0) {
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-14 text-center">
+    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+      <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2" />
+      </svg>
+    </div>
+    <h3 class="font-semibold text-gray-800 mb-1">No reports yet</h3>
+    <p class="text-sm text-gray-400 mb-5">Submit your first symptom report to get an AI health analysis.</p>
+    <a routerLink="/dashboard/symptom-checker"
+      class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      Submit a report
+    </a>
+  </div>
+  }
+
+  @if (filteredForms().length === 0 && allForms().length > 0) {
+  <div class="bg-white rounded-2xl border border-gray-100 p-10 text-center">
+    <p class="text-gray-400">No reports match your search or filter.</p>
+    <button (click)="setFilter('all'); searchQuery.set('')" class="mt-3 text-sm text-violet-600 hover:underline">
+      Clear filters
+    </button>
+  </div>
+  }
+
+  <!-- ── Report cards ── -->
+  @if (filteredForms().length > 0) {
+  <div class="space-y-4">
+    @for (form of filteredForms(); track form._id) {
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition group">
+
+      <!-- Card header -->
+      <div class="flex items-start gap-4 p-5">
+
+        <!-- Date badge -->
+        <div class="flex-shrink-0 w-12 text-center bg-violet-50 rounded-xl py-2 px-1">
+          <p class="text-xs text-violet-400 font-medium leading-tight">
+            {{ formatDate(form.createdAt).split(' ')[1] }}
+          </p>
+          <p class="text-xl font-bold text-violet-700 leading-tight">
+            {{ formatDate(form.createdAt).split(' ')[0] }}
+          </p>
+          <p class="text-xs text-violet-400 font-medium leading-tight">
+            {{ formatDate(form.createdAt).split(' ')[2] }}
+          </p>
+        </div>
+
+        <!-- Main info -->
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 flex-wrap mb-2">
+            <!-- Status badge -->
+            <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
+              [class]="statusConfig[form.status]?.bg + ' ' + statusConfig[form.status]?.text">
+              <span class="w-1.5 h-1.5 rounded-full" [class]="statusConfig[form.status]?.dot"></span>
+              {{ statusConfig[form.status]?.label }}
+            </span>
+            <!-- AI badge -->
+            @if (form.aiAnalysis) {
+            <span
+              class="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-violet-100 text-violet-700">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2" />
+              </svg>
+              AI Analyzed
+            </span>
+            <!-- Urgency pill -->
+            <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-50"
+              [class]="urgencyConfig[form.aiAnalysis.urgencyLevel]?.color">
+              {{ urgencyConfig[form.aiAnalysis.urgencyLevel]?.label }}
+            </span>
+            }
+            <span class="ml-auto text-xs text-gray-400">{{ formatTime(form.createdAt) }}</span>
+          </div>
+
+          <!-- Patient info row -->
+          <p class="text-sm text-gray-600 mb-2">
+            <span class="font-medium text-gray-800">{{ form.age }} yrs</span>
+            <span class="mx-1.5 text-gray-300">·</span>
+            <span class="capitalize">{{ form.gender }}</span>
+            <span class="mx-1.5 text-gray-300">·</span>
+            <span>{{ form.duration }}</span>
+          </p>
+
+          <!-- Symptoms chips (max 5 shown) -->
+          <div class="flex flex-wrap gap-1.5 mb-3">
+            @for (s of form.symptoms.slice(0, 5); track s) {
+            <span class="bg-blue-50 text-blue-700 text-xs font-medium px-2 py-0.5 rounded-full">{{ s }}</span>
+            }
+            @if (form.symptoms.length > 5) {
+            <span class="bg-gray-100 text-gray-500 text-xs font-medium px-2 py-0.5 rounded-full">
+              +{{ form.symptoms.length - 5 }} more
+            </span>
+            }
+          </div>
+
+          <!-- Severity bar -->
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-gray-400 w-14 flex-shrink-0">Severity {{ form.severity }}/10</span>
+            <div class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+              <div class="h-full rounded-full transition-all" [class]="severityConfig[form.severity]?.bar"
+                [style.width]="severityWidth(form.severity)">
+              </div>
+            </div>
+            <span class="text-xs font-medium w-16 text-right" [class]="severityConfig[form.severity]?.text">
+              {{ severityConfig[form.severity]?.label }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI summary preview -->
+      @if (form.aiAnalysis?.summary) {
+      <div class="px-5 pb-4 border-t border-gray-50 pt-3">
+        <p class="text-xs text-gray-400 mb-1 flex items-center gap-1">
+          <svg class="w-3.5 h-3.5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18" />
+          </svg>
+          AI Summary
+        </p>
+        <p class="text-sm text-gray-600 leading-relaxed line-clamp-2">{{ form.aiAnalysis!.summary }}</p>
+      </div>
+      }
+
+      <!-- Card footer -->
+      <div class="flex items-center justify-between px-5 py-3 bg-gray-50 border-t border-gray-100">
+        <p class="text-xs text-gray-400">
+          Report ID: <span class="font-mono">{{ form._id.slice(-8).toUpperCase() }}</span>
+        </p>
+        <a [routerLink]="['/dashboard/history', form._id]"
+          class="flex items-center gap-1.5 text-sm font-semibold text-violet-600 hover:text-violet-800 transition">
+          View full report
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </a>
+      </div>
+
+    </div>
+    }
+  </div>
+
+  <!-- Results count -->
+  <p class="text-center text-xs text-gray-400 mt-6">
+    Showing {{ filteredForms().length }} of {{ allForms().length }} reports
+  </p>
+  }
+
+  }
+</div>
+</div>

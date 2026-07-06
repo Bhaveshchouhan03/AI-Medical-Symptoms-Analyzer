@@ -1,0 +1,555 @@
+<div class="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-6 pb-20 font-sans">
+  <div class="max-w-6xl mx-auto space-y-8 animate-fadeIn">
+
+  <!-- ─────────── HEADER SECTION ─────────── -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+    <div>
+      <div class="flex items-center gap-3">
+        <div
+          class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-teal-400 flex items-center justify-center text-xl shadow-lg shadow-blue-500/10">
+          👨‍⚕️
+        </div>
+        <div>
+          <h1 class="text-2xl font-extrabold text-white tracking-tight">Clinical Workspace</h1>
+        </div>
+      </div>
+      <p class="text-slate-400 text-xs mt-1.5 ml-1 font-semibold">
+        Manage consultation requests, check advanced patient diagnostic records, and issue digital prescriptions.
+      </p>
+    </div>
+
+    <button (click)="loadAppointments()"
+      class="self-start md:self-auto px-4 py-2 border border-slate-800 bg-slate-900/50 hover:bg-slate-800 text-slate-350 rounded-xl text-xs font-bold transition duration-300 flex items-center gap-2 shadow-sm">
+      🔄 Refresh Panel
+    </button>
+  </div>
+
+  <!-- ─────────── STATISTICS COUNTERS GRID ─────────── -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Stat 1: Earnings -->
+    <div
+      class="p-4 bg-slate-900/40 border border-slate-800 rounded-2xl flex items-center gap-3.5 shadow-xl backdrop-blur-md">
+      <div class="w-10 h-10 bg-emerald-500/10 text-emerald-450 rounded-xl flex items-center justify-center text-lg">
+        💵
+      </div>
+      <div>
+        <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Today's Earnings</span>
+        <h3 class="text-lg font-black text-white mt-0.5">${{ todayEarnings() }}</h3>
+      </div>
+    </div>
+
+    <!-- Stat 2: Active Patients -->
+    <div
+      class="p-4 bg-slate-900/40 border border-slate-800 rounded-2xl flex items-center gap-3.5 shadow-xl backdrop-blur-md">
+      <div class="w-10 h-10 bg-blue-500/10 text-blue-450 rounded-xl flex items-center justify-center text-lg">
+        👥
+      </div>
+      <div>
+        <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Total Patients</span>
+        <h3 class="text-lg font-black text-white mt-0.5">{{ totalPatients() }}</h3>
+      </div>
+    </div>
+
+    <!-- Stat 3: Pending requests -->
+    <div
+      class="p-4 bg-slate-900/40 border border-slate-800 rounded-2xl flex items-center gap-3.5 shadow-xl backdrop-blur-md">
+      <div class="w-10 h-10 bg-amber-500/10 text-amber-450 rounded-xl flex items-center justify-center text-lg">
+        ⏳
+      </div>
+      <div>
+        <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Pending Actions</span>
+        <h3 class="text-lg font-black text-white mt-0.5">{{ pendingCount() }}</h3>
+      </div>
+    </div>
+
+    <!-- Stat 4: Critical alerts -->
+    <div
+      class="p-4 bg-slate-900/40 border border-slate-800 rounded-2xl flex items-center gap-3.5 shadow-xl backdrop-blur-md">
+      <div class="w-10 h-10 bg-red-500/10 text-red-450 rounded-xl flex items-center justify-center text-lg">
+        🚨
+      </div>
+      <div>
+        <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Critical
+          Emergencies</span>
+        <h3 class="text-lg font-black text-red-400 mt-0.5 animate-pulse">{{ emergencyCount() }}</h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────── TABS FILTER SELECTOR ─────────── -->
+  <div class="flex items-center gap-2 border-b border-slate-800 pb-1">
+    <button (click)="activeFilterTab.set('requests')" [class.border-blue-500]="activeFilterTab() === 'requests'"
+      [class.text-blue-400]="activeFilterTab() === 'requests'" [class.text-slate-500]="activeFilterTab() !== 'requests'"
+      class="px-4 py-2 border-b-2 border-transparent text-xs font-extrabold uppercase tracking-widest transition flex items-center gap-2">
+      📥 Requests
+      <span class="bg-amber-500/10 text-amber-400 text-[10px] font-black px-1.5 py-0.5 rounded-full">{{ pendingCount()
+        }}</span>
+    </button>
+    <button (click)="activeFilterTab.set('active')" [class.border-blue-500]="activeFilterTab() === 'active'"
+      [class.text-blue-400]="activeFilterTab() === 'active'" [class.text-slate-500]="activeFilterTab() !== 'active'"
+      class="px-4 py-2 border-b-2 border-transparent text-xs font-extrabold uppercase tracking-widest transition flex items-center gap-2">
+      📋 Active Visits
+      <span class="bg-blue-500/10 text-blue-450 text-[10px] font-black px-1.5 py-0.5 rounded-full">{{ acceptedCount() +
+        emergencyCount() }}</span>
+    </button>
+    <button (click)="activeFilterTab.set('history')" [class.border-blue-500]="activeFilterTab() === 'history'"
+      [class.text-blue-400]="activeFilterTab() === 'history'" [class.text-slate-500]="activeFilterTab() !== 'history'"
+      class="px-4 py-2 border-b-2 border-transparent text-xs font-extrabold uppercase tracking-widest transition flex items-center gap-2">
+      📁 Archive History
+    </button>
+  </div>
+
+  <!-- Loading View -->
+  <div *ngIf="isLoading()" class="space-y-4">
+    <div *ngFor="let i of [1, 2]"
+      class="p-6 bg-slate-900/30 border border-slate-800 rounded-3xl animate-pulse space-y-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-slate-900 rounded-xl"></div>
+          <div class="space-y-2">
+            <div class="h-3 bg-slate-900 rounded w-24"></div>
+            <div class="h-2.5 bg-slate-900 rounded w-36"></div>
+          </div>
+        </div>
+        <div class="h-5 bg-slate-850 rounded w-16"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content List View -->
+  <div *ngIf="!isLoading()" class="space-y-4">
+    <!-- Error banner -->
+    <div *ngIf="error()"
+      class="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 text-xs flex items-center gap-2">
+      <span>⚠️ {{ error() }}</span>
+    </div>
+
+    <!-- Empty view -->
+    <div *ngIf="filteredAppointments().length === 0"
+      class="p-12 bg-slate-900/20 border border-slate-800 rounded-3xl text-center shadow-md">
+      <span class="text-3xl block">📭</span>
+      <h3 class="text-sm font-bold text-slate-350 mt-3">No Appointments Found</h3>
+      <p class="text-slate-500 text-xxs mt-1">There are no consultations listed inside this view.</p>
+    </div>
+
+    <!-- List -->
+    <div *ngFor="let app of filteredAppointments()"
+      class="p-5 bg-slate-900/30 hover:bg-slate-900/50 border border-slate-800/80 hover:border-slate-700 rounded-3xl transition duration-300 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-5 relative overflow-hidden group backdrop-blur-sm">
+
+      <!-- Critical alert pulse sidebar -->
+      <div *ngIf="app.status === 'Emergency'" class="absolute left-0 top-0 bottom-0 w-1 bg-red-500 animate-pulse"></div>
+
+      <div class="flex items-start gap-4">
+        <div
+          class="w-11 h-11 bg-slate-950 border border-slate-800 rounded-2xl flex items-center justify-center text-lg flex-shrink-0 text-slate-400">
+          👤
+        </div>
+        <div class="space-y-1.5 min-w-0 flex-1 text-xs">
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <h3 class="text-sm font-bold text-white truncate">{{ app.patientName }}</h3>
+            <span [class]="getStatusClass(app.status)"
+              class="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wide border flex items-center gap-1">
+              <span>{{ getStatusIcon(app.status) }}</span>
+              {{ app.status }}
+            </span>
+          </div>
+
+          <p class="text-xxs text-slate-400 font-medium">Email: {{ app.patientEmail }}</p>
+
+          <div class="flex items-center gap-x-4 gap-y-1 text-[10px] text-slate-500 pt-1 font-bold">
+            <span class="flex items-center gap-1.5">📅 {{ formatDate(app.appointmentDate) }}</span>
+            <span class="flex items-center gap-1.5">⏰ {{ app.appointmentTime }}</span>
+          </div>
+
+          <div class="mt-2.5 p-3 bg-slate-950/50 border border-slate-850 rounded-2xl text-xxs text-slate-300 space-y-1">
+            <p class="font-bold text-slate-500">📋 Reason: <span class="font-medium text-slate-200">{{
+                app.reasonForVisit }}</span></p>
+            <div *ngIf="app.symptoms && app.symptoms.length > 0" class="flex items-center flex-wrap gap-1.5 pt-1">
+              <span class="font-bold text-slate-500">Symptoms:</span>
+              <span *ngFor="let s of app.symptoms"
+                class="px-1.5 py-0.5 bg-slate-900 text-slate-300 rounded text-[9px] border border-slate-800 font-bold uppercase">{{
+                s }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Panel Buttons -->
+      <div class="flex items-center gap-2 flex-wrap md:self-center z-10">
+        <!-- View details (all states) -->
+        <button (click)="viewAppointmentDetails(app._id)"
+          class="px-3 py-1.5 bg-slate-850 hover:bg-slate-800 text-slate-200 text-xxs font-extrabold uppercase tracking-wider rounded-xl transition duration-300 border border-slate-800">
+          🔍 View Details
+        </button>
+
+        <!-- Actions context -->
+        <ng-container *ngIf="app.status === 'Pending'">
+          <button (click)="acceptAppointment(app._id)"
+            class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xxs font-extrabold uppercase tracking-wider rounded-xl transition duration-300 shadow-sm shadow-blue-500/10">
+            Accept
+          </button>
+          <button (click)="startRejectAppointment(app._id)"
+            class="px-3 py-1.5 border border-red-900/60 hover:bg-red-950/30 text-red-400 text-xxs font-extrabold uppercase tracking-wider rounded-xl transition duration-300">
+            Reject
+          </button>
+        </ng-container>
+
+        <ng-container *ngIf="app.status === 'Accepted' || app.status === 'Rescheduled' || app.status === 'Emergency'">
+          <button (click)="startCompleteAppointment(app._id)"
+            class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xxs font-extrabold uppercase tracking-wider rounded-xl transition duration-300 shadow-sm shadow-emerald-500/10">
+            Complete
+          </button>
+          <button (click)="startReschedule(app._id, app.appointmentDate, app.appointmentTime)"
+            class="px-3 py-1.5 bg-slate-850 hover:bg-slate-800 text-purple-400 text-xxs font-extrabold uppercase tracking-wider rounded-xl border border-slate-800 transition duration-300">
+            Reschedule
+          </button>
+          <button *ngIf="app.status !== 'Emergency'" (click)="markEmergency(app._id)"
+            class="px-3 py-1.5 border border-red-900/50 bg-red-950/20 hover:bg-red-950/40 text-red-400 text-xxs font-extrabold uppercase tracking-wider rounded-xl transition duration-300">
+            🚨 Emergency
+          </button>
+          <button (click)="cancelAppointment(app._id)"
+            class="px-3 py-1.5 text-slate-500 hover:text-red-400 text-xxs font-extrabold uppercase tracking-wider rounded-xl transition duration-300">
+            Cancel
+          </button>
+        </ng-container>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════ PATIENT DETAILS MODAL ═══════════════ -->
+  <div *ngIf="isDetailOpen() && selectedAppointmentDetails()"
+    class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
+    <div
+      class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col my-8 text-slate-300">
+
+      <!-- Modal Header -->
+      <header class="px-6 py-4 bg-slate-950 border-b border-slate-850 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="text-xl">📋</span>
+          <div>
+            <h2 class="text-xs font-black text-white uppercase tracking-widest">Diagnostic Record</h2>
+            <span class="text-[10px] text-slate-500">Integrated patient case file details</span>
+          </div>
+        </div>
+        <button (click)="closeDetails()"
+          class="p-1.5 hover:bg-slate-850 text-slate-400 hover:text-white rounded-xl transition">✕</button>
+      </header>
+
+      <!-- Modal Body -->
+      <div class="p-6 overflow-y-auto max-h-[70vh] space-y-6 scrollbar-thin">
+
+        <!-- 1. Patient Profile Info Block -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-950/60 p-5 rounded-2xl border border-slate-850">
+          <!-- Avatar & Basics -->
+          <div class="flex items-center gap-4">
+            <div
+              class="w-14 h-14 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-2xl font-bold flex-shrink-0 text-slate-350">
+              👤
+            </div>
+            <div>
+              <h4 class="text-sm font-extrabold text-white leading-tight">{{ selectedAppointmentDetails().name }}</h4>
+              <p class="text-[10px] text-slate-500 capitalize mt-0.5 font-bold">{{ selectedAppointmentDetails().gender
+                }}, {{ selectedAppointmentDetails().age }} Yrs</p>
+            </div>
+          </div>
+          <!-- Contact -->
+          <div class="text-xxs text-slate-405 space-y-1.5">
+            <div><span class="font-bold text-slate-500 uppercase tracking-wider block">Email Address</span> {{
+              selectedAppointmentDetails().email }}</div>
+            <div><span class="font-bold text-slate-500 uppercase tracking-wider block">Phone Connection</span> {{
+              selectedAppointmentDetails().phone }}</div>
+          </div>
+          <!-- Scheduled Timing -->
+          <div class="text-xxs text-slate-405 space-y-1.5">
+            <div><span class="font-bold text-slate-500 uppercase tracking-wider block">Appointment Date</span> 📅 {{
+              formatDate(selectedAppointmentDetails().appointmentDate) }}</div>
+            <div><span class="font-bold text-slate-500 uppercase tracking-wider block">Scheduled Slot</span> ⏰ {{
+              selectedAppointmentDetails().appointmentTime }}</div>
+          </div>
+        </div>
+
+        <!-- 2. Diagnostic & Health Twin Metric details -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <!-- Diagnostics check -->
+          <div class="p-5 bg-slate-950/30 border border-slate-850 rounded-2xl space-y-3.5 shadow-xl">
+            <h4
+              class="text-xs font-bold text-blue-400 uppercase tracking-wider border-b border-slate-850 pb-1.5 flex items-center gap-1.5">
+              <span>🩺</span> Symptom Analysis
+            </h4>
+            <div class="space-y-2 text-xxs text-slate-300">
+              <div><span class="font-bold text-slate-500">Checked Symptoms:</span>
+                <div class="flex flex-wrap gap-1.5 mt-1">
+                  <span *ngFor="let s of selectedAppointmentDetails().symptoms"
+                    class="px-2 py-0.5 bg-slate-900 text-slate-300 rounded border border-slate-850 uppercase tracking-wider font-extrabold text-[8px]">{{
+                    s }}</span>
+                </div>
+              </div>
+              <div class="pt-1.5"><span class="font-bold text-slate-500 block">Gemini Estimated Diagnosis:</span>
+                <p
+                  class="mt-0.5 text-blue-300 bg-blue-500/10 p-2.5 rounded-xl border border-blue-500/20 leading-relaxed font-semibold italic text-xxs">
+                  "{{ selectedAppointmentDetails().possibleDisease }}"
+                </p>
+              </div>
+              <div class="grid grid-cols-2 gap-4 pt-1.5">
+                <div>
+                  <span class="font-bold text-slate-500 block">Estimated Severity</span>
+                  <span
+                    class="inline-block mt-0.5 px-2 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded font-black text-xxs">
+                    ⚠️ Level {{ selectedAppointmentDetails().severityLevel }}/10
+                  </span>
+                </div>
+                <div>
+                  <span class="font-bold text-slate-500 block">AI Health Score</span>
+                  <span
+                    class="inline-block mt-0.5 px-2 py-0.5 bg-emerald-500/10 text-emerald-450 border border-emerald-500/20 rounded font-black text-xxs">
+                    🧬 Score: {{ selectedAppointmentDetails().aiHealthScore }}/100
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Medical History & Notes -->
+          <div class="p-5 bg-slate-950/30 border border-slate-850 rounded-2xl space-y-3.5 shadow-xl">
+            <h4
+              class="text-xs font-bold text-blue-400 uppercase tracking-wider border-b border-slate-850 pb-1.5 flex items-center gap-1.5">
+              <span>📋</span> Medical History
+            </h4>
+            <div class="space-y-3.5 text-xxs text-slate-300">
+              <div>
+                <span class="font-bold text-slate-500">Chronic Issues / Past History:</span>
+                <p class="mt-1 leading-relaxed text-slate-350">{{ selectedAppointmentDetails().medicalHistory }}</p>
+              </div>
+              <div>
+                <span class="font-bold text-slate-500">Current Medications:</span>
+                <p class="mt-1 leading-relaxed text-slate-350">{{ selectedAppointmentDetails().currentMedicines }}</p>
+              </div>
+              <div *ngIf="selectedAppointmentDetails().doctorNotes || selectedAppointmentDetails().prescriptionNotes">
+                <span class="font-bold text-slate-500">Doctor Prescribed:</span>
+                <p
+                  class="mt-1 p-2 bg-emerald-500/10 border border-emerald-550/20 rounded-xl text-emerald-400 font-semibold leading-relaxed">
+                  {{ selectedAppointmentDetails().prescriptionNotes }}
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 3. Face Scan report (if available) -->
+        <div *ngIf="selectedAppointmentDetails().faceScanReport"
+          class="p-5 bg-slate-950/30 border border-slate-850 rounded-2xl space-y-3 shadow-xl">
+          <h4
+            class="text-xs font-bold text-indigo-400 uppercase tracking-wider border-b border-slate-850 pb-1.5 flex items-center gap-1.5">
+            <span>📷</span> Biometric Facial Wellness scan report
+          </h4>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xxs text-slate-300">
+            <div><span class="font-bold text-slate-500 block">Scan Category</span> {{
+              selectedAppointmentDetails().faceScanReport.category }} (Score: {{
+              selectedAppointmentDetails().faceScanReport.score }}/100)</div>
+            <div><span class="font-bold text-slate-500 block">Detected Mood</span> {{
+              selectedAppointmentDetails().faceScanReport.mood }}</div>
+            <div><span class="font-bold text-slate-500 block">Dark Circles appearance</span> {{
+              selectedAppointmentDetails().faceScanReport.indicators.darkCircles }}</div>
+            <div><span class="font-bold text-slate-500 block">Skin Redness</span> {{
+              selectedAppointmentDetails().faceScanReport.indicators.skinRedness || 'Normal' }}</div>
+          </div>
+          <div class="pt-1.5 text-xxs">
+            <span class="font-bold text-slate-500">AI Biometric Recommendations:</span>
+            <ul class="list-disc pl-4 mt-1 text-slate-305 space-y-0.5 font-medium">
+              <li *ngFor="let rec of selectedAppointmentDetails().faceScanReport.recommendations">{{ rec }}</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 4. Interactive Timeline Audit -->
+        <div class="p-5 bg-slate-950/30 border border-slate-850 rounded-2xl space-y-4 shadow-xl">
+          <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-850 pb-1.5">
+            📋 Case History Timeline
+          </h4>
+          <div class="relative border-l border-slate-800 ml-2.5 pl-5 space-y-5">
+            <div *ngFor="let t of selectedAppointmentDetails().timeline" class="relative">
+              <span
+                class="absolute -left-[26px] top-0.5 w-3 h-3 rounded-full bg-slate-900 border border-slate-750 flex items-center justify-center text-[7px]"></span>
+
+              <div class="space-y-0.5">
+                <span class="text-[9px] font-black text-slate-500">{{ formatDate(t.timestamp) }}</span>
+                <div class="text-xxs font-bold text-white uppercase tracking-wider">{{ t.status }}</div>
+                <p class="text-xxs text-slate-400 italic">"{{ t.notes || 'Status logs saved.' }}"</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <footer class="px-6 py-4 border-t border-slate-850 bg-slate-950 flex justify-end">
+        <button (click)="closeDetails()"
+          class="px-5 py-2 bg-slate-850 hover:bg-slate-800 text-slate-200 text-xs font-extrabold uppercase tracking-wider rounded-xl transition border border-slate-800">
+          Close Case File
+        </button>
+      </footer>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════ ACTIONS: REJECT ALTERNATIVE SLOTS MODAL ═══════════════ -->
+  <div *ngIf="isRejectModalOpen()"
+    class="fixed inset-0 bg-black/80 backdrop-blur-md z-55 flex items-center justify-center p-4">
+    <div
+      class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden text-slate-350">
+      <header class="px-5 py-4 border-b border-slate-850 bg-slate-950">
+        <h3 class="text-xs font-black uppercase text-white tracking-wider">Reject Appointment request</h3>
+      </header>
+
+      <div class="p-5 space-y-4">
+        <!-- Rejection Reason -->
+        <div class="space-y-1.5">
+          <label class="block text-xxs font-bold uppercase text-slate-500 tracking-wider">Select Rejection
+            Reason</label>
+          <select [(ngModel)]="rejectReason"
+            class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500">
+            <option value="Doctor unavailable" class="bg-slate-950">Doctor unavailable</option>
+            <option value="Emergency Leave" class="bg-slate-950">Emergency Leave</option>
+            <option value="Time Slot Full" class="bg-slate-950">Time Slot Full</option>
+            <option value="Clinic Closed" class="bg-slate-950">Clinic Closed</option>
+            <option value="Personal Reason" class="bg-slate-950">Personal Reason</option>
+            <option value="Other" class="bg-slate-950">Other (Type custom reason below)</option>
+          </select>
+        </div>
+
+        <div *ngIf="rejectReason() === 'Other'" class="space-y-1.5">
+          <label class="block text-xxs font-bold uppercase text-slate-500 tracking-wider">Custom Reason</label>
+          <input type="text" [(ngModel)]="customRejectReason" placeholder="Enter reason details..."
+            class="w-full px-3 py-2 bg-slate-955 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+        </div>
+
+        <!-- At least 3 alternative slots -->
+        <div class="space-y-2">
+          <label class="block text-xxs font-bold uppercase text-slate-500 tracking-wider">Propose 3 Alternative Time
+            Slots</label>
+          <div *ngFor="let slot of suggestedSlots(); let i = index" class="flex gap-2">
+            <span
+              class="w-6 h-6 rounded-full bg-slate-950 text-[10px] font-bold text-slate-500 flex items-center justify-center flex-shrink-0 self-center border border-slate-850">#{{
+              i+1 }}</span>
+            <input type="text" [ngModel]="slot" (ngModelChange)="updateSlotItem(i, $event)"
+              class="flex-1 px-3 py-1.5 bg-slate-955 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+          </div>
+        </div>
+      </div>
+
+      <footer class="px-5 py-3 border-t border-slate-850 bg-slate-950 flex justify-end gap-2">
+        <button (click)="closeRejectModal()"
+          class="px-3.5 py-1.5 text-slate-400 hover:text-white text-xxs font-bold uppercase">Cancel</button>
+        <button (click)="submitReject()"
+          class="px-4 py-1.5 bg-red-600 hover:bg-red-750 text-white text-xxs font-bold uppercase rounded-xl transition">Submit
+          Rejection</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ═══════════════ ACTIONS: RESCHEDULE TIME MODAL ═══════════════ -->
+  <div *ngIf="isRescheduleModalOpen()"
+    class="fixed inset-0 bg-black/80 backdrop-blur-md z-55 flex items-center justify-center p-4">
+    <div
+      class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden text-slate-350">
+      <header class="px-5 py-4 border-b border-slate-850 bg-slate-950">
+        <h3 class="text-xs font-black uppercase text-white tracking-wider">Reschedule Appointment</h3>
+      </header>
+
+      <div class="p-5 space-y-4">
+        <!-- Date -->
+        <div class="space-y-1.5">
+          <label class="block text-xxs font-bold uppercase text-slate-500 tracking-wider">Select New Date</label>
+          <input type="date" [(ngModel)]="newRescheduleDate"
+            class="w-full px-3 py-2 bg-slate-955 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+        </div>
+
+        <!-- Time Slot selection -->
+        <div class="space-y-1.5">
+          <label class="block text-xxs font-bold uppercase text-slate-500 tracking-wider">Select New Time Slot</label>
+          <select [(ngModel)]="newRescheduleTime"
+            class="w-full px-3 py-2 bg-slate-955 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500">
+            <option value="09:00 AM" class="bg-slate-950">09:00 AM</option>
+            <option value="10:00 AM" class="bg-slate-950">10:00 AM</option>
+            <option value="11:00 AM" class="bg-slate-950">11:00 AM</option>
+            <option value="02:00 PM" class="bg-slate-950">02:00 PM</option>
+            <option value="03:00 PM" class="bg-slate-950">03:00 PM</option>
+            <option value="04:00 PM" class="bg-slate-950">04:00 PM</option>
+          </select>
+        </div>
+
+        <!-- Reason -->
+        <div class="space-y-1.5">
+          <label class="block text-xxs font-bold uppercase text-slate-500 tracking-wider">Reschedule Reason
+            Notes</label>
+          <input type="text" [(ngModel)]="rescheduleReason" placeholder="Enter reason notes..."
+            class="w-full px-3 py-2 bg-slate-955 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+        </div>
+      </div>
+
+      <footer class="px-5 py-3 border-t border-slate-850 bg-slate-950 flex justify-end gap-2">
+        <button (click)="closeRescheduleModal()"
+          class="px-3.5 py-1.5 text-slate-400 hover:text-white text-xxs font-bold uppercase">Cancel</button>
+        <button (click)="submitReschedule()"
+          class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xxs font-bold uppercase rounded-xl transition">Confirm
+          Reschedule</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ═══════════════ ACTIONS: CASE COMPLETION PRESCRIPTION MODAL ═══════════════ -->
+  <div *ngIf="isCompleteModalOpen()"
+    class="fixed inset-0 bg-black/80 backdrop-blur-md z-55 flex items-center justify-center p-4">
+    <div
+      class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden text-slate-350">
+      <header class="px-5 py-4 border-b border-slate-850 bg-slate-955 flex items-center justify-between">
+        <h3 class="text-xs font-black uppercase text-white tracking-wider">Complete Consultation &amp; Issue Notes</h3>
+        <button (click)="closeCompleteModal()" class="text-slate-400 hover:text-white text-xs">✕</button>
+      </header>
+
+      <div class="p-6 space-y-4">
+        <!-- Diagnosis Notes -->
+        <div class="space-y-1.5">
+          <label for="diagnosisNotesInput"
+            class="block text-xxs font-bold uppercase text-slate-550 tracking-wider">Clinical Diagnosis Notes</label>
+          <textarea id="diagnosisNotesInput" [(ngModel)]="clinicalNotes" rows="3"
+            placeholder="Type symptoms observed, medical review findings..."
+            class="w-full px-3.5 py-2 bg-slate-955 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500"></textarea>
+        </div>
+
+        <!-- Prescription details -->
+        <div class="space-y-1.5">
+          <label for="prescriptionNotesInput"
+            class="block text-xxs font-bold uppercase text-slate-550 tracking-wider">Prescription Instructions
+            (Medicines &amp; Dosages)</label>
+          <textarea id="prescriptionNotesInput" [(ngModel)]="prescriptionNotes" rows="3"
+            placeholder="e.g. Paracetamol 650mg — 1 tab after meals twice daily for 3 days..."
+            class="w-full px-3.5 py-2 bg-slate-955 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500"></textarea>
+        </div>
+
+        <!-- Report file URL link -->
+        <div class="space-y-1.5">
+          <label for="reportUrlInput" class="block text-xxs font-bold uppercase text-slate-550 tracking-wider">Attach
+            Medical Report URL / Document link</label>
+          <input id="reportUrlInput" type="text" [(ngModel)]="reportUrl"
+            placeholder="e.g. http://medcare-reports.com/clinical-logs/report.pdf"
+            class="w-full px-3.5 py-2 bg-slate-955 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+        </div>
+      </div>
+
+      <footer class="px-5 py-3 border-t border-slate-850 bg-slate-950 flex justify-end gap-2">
+        <button (click)="closeCompleteModal()"
+          class="px-3.5 py-1.5 text-slate-400 hover:text-white text-xxs font-bold uppercase">Cancel</button>
+        <button (click)="submitCompleteAppointment()"
+          class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-750 text-white text-xxs font-bold uppercase rounded-xl transition">Submit
+          &amp; Close Case</button>
+      </footer>
+    </div>
+  </div>
+
+</div>
+</div>

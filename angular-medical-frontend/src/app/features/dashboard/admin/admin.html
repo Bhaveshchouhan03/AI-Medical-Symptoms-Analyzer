@@ -1,0 +1,478 @@
+<div class="min-h-screen bg-dashboard-theme transition-colors duration-300 p-4 sm:p-6 pb-20">
+  <div class="space-y-6 max-w-7xl mx-auto">
+  <!-- Title -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-5">
+    <div>
+      <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">Administrative Console</h1>
+      <p class="text-xs text-gray-400 font-semibold mt-1">Manage doctor directories, clinic branch locations, view
+        analytics, and audit logs</p>
+    </div>
+
+    @if (activeTab() === 'doctors') {
+    <button (click)="openAddModal()"
+      class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition shadow-sm">
+      + Register New Doctor
+    </button>
+    } @else if (activeTab() === 'hospitals') {
+    <button (click)="openAddHospital()"
+      class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition shadow-sm">
+      + Add Clinic Branch
+    </button>
+    }
+  </div>
+
+  <!-- Tabs Navigation -->
+  <div class="flex border-b border-gray-100 overflow-x-auto gap-2">
+    <button (click)="activeTab.set('analytics')" [class.border-blue-600]="activeTab() === 'analytics'"
+      [class.text-blue-600]="activeTab() === 'analytics'"
+      class="px-5 py-3 border-b-2 border-transparent text-sm font-bold text-gray-400 hover:text-gray-700 transition whitespace-nowrap">
+      📊 Operations Report
+    </button>
+    <button (click)="activeTab.set('doctors')" [class.border-blue-600]="activeTab() === 'doctors'"
+      [class.text-blue-600]="activeTab() === 'doctors'"
+      class="px-5 py-3 border-b-2 border-transparent text-sm font-bold text-gray-400 hover:text-gray-700 transition whitespace-nowrap">
+      👨‍⚕️ Doctors Staff
+    </button>
+    <button (click)="activeTab.set('hospitals')" [class.border-blue-600]="activeTab() === 'hospitals'"
+      [class.text-blue-600]="activeTab() === 'hospitals'"
+      class="px-5 py-3 border-b-2 border-transparent text-sm font-bold text-gray-400 hover:text-gray-700 transition whitespace-nowrap">
+      🏥 Clinic Branches
+    </button>
+    <button (click)="activeTab.set('appointments')" [class.border-blue-600]="activeTab() === 'appointments'"
+      [class.text-blue-600]="activeTab() === 'appointments'"
+      class="px-5 py-3 border-b-2 border-transparent text-sm font-bold text-gray-400 hover:text-gray-700 transition whitespace-nowrap">
+      📅 Bookings Audit
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
+    @for (i of [1, 2, 3]; track i) {
+    <div class="bg-white border border-gray-100 rounded-3xl p-6 h-32 shadow-sm"></div>
+    }
+  </div>
+  } @else {
+
+  <!-- Error message -->
+  @if (error()) {
+  <div class="p-4 bg-red-50 border border-red-100 text-red-700 rounded-2xl text-xs flex items-center gap-3">
+    <span>⚠️</span> <span>{{ error() }}</span>
+  </div>
+  }
+
+  <!-- ════════════ Tab 1: Analytics / Operations Report ════════════ -->
+  @if (activeTab() === 'analytics') {
+  @if (analytics(); as stats) {
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <!-- Total Doctors -->
+    <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Total Doctors</p>
+        <h3 class="text-3xl font-black text-gray-900">{{ stats.totalDoctors }}</h3>
+      </div>
+      <div
+        class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl font-bold">
+        👨‍⚕️
+      </div>
+    </div>
+
+    <!-- Total Patients -->
+    <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Total Patients</p>
+        <h3 class="text-3xl font-black text-gray-900">{{ stats.totalPatients }}</h3>
+      </div>
+      <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl font-bold">
+        👥
+      </div>
+    </div>
+
+    <!-- Appointments Today -->
+    <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Appointments Today</p>
+        <h3 class="text-3xl font-black text-gray-900">{{ stats.appointmentsToday }}</h3>
+      </div>
+      <div
+        class="w-12 h-12 rounded-2xl bg-yellow-50 text-yellow-600 flex items-center justify-center text-xl font-bold">
+        📅
+      </div>
+    </div>
+  </div>
+
+  <!-- Extra details row -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm text-center">
+      <h4 class="text-xs font-bold text-gray-400 uppercase mb-2">Completed Visits</h4>
+      <p class="text-2xl font-black text-green-600">{{ stats.completedAppointments }}</p>
+    </div>
+    <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm text-center">
+      <h4 class="text-xs font-bold text-gray-400 uppercase mb-2">Cancelled / Rejected</h4>
+      <p class="text-2xl font-black text-red-500">{{ stats.cancelledAppointments }}</p>
+    </div>
+    <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm text-center">
+      <h4 class="text-xs font-bold text-gray-400 uppercase mb-2">Most Booked Specialty</h4>
+      <p class="text-lg font-black text-blue-600 uppercase tracking-wide mt-1">{{ stats.mostBookedSpecialist }}</p>
+    </div>
+  </div>
+  }
+  }
+
+  <!-- ════════════ Tab 2: Doctors List ════════════ -->
+  @if (activeTab() === 'doctors') {
+  <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-gray-50 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wider">
+            <th class="px-6 py-4">Doctor</th>
+            <th class="px-6 py-4">Specialization</th>
+            <th class="px-6 py-4">Clinic / Hospital</th>
+            <th class="px-6 py-4">Status</th>
+            <th class="px-6 py-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50 text-sm">
+          @for (doc of doctors(); track doc._id) {
+          <tr class="hover:bg-gray-50/50">
+            <td class="px-6 py-4">
+              <div>
+                <strong class="text-gray-900 font-bold block">{{ doc.fullName }}</strong>
+                <span class="text-xs text-gray-400 font-medium">{{ doc.qualification }} · {{ doc.experience }} yrs
+                  exp</span>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <span
+                class="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                {{ doc.specialization }}
+              </span>
+            </td>
+            <td class="px-6 py-4">
+              <div class="text-xs text-gray-600">
+                <p class="font-bold">{{ doc.hospitalName }}</p>
+                <p class="text-gray-400">{{ doc.city }}</p>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <button (click)="toggleDoctorStatus(doc)" [class.bg-green-100]="doc.status === 'Active'"
+                [class.text-green-700]="doc.status === 'Active'" [class.bg-gray-100]="doc.status === 'Inactive'"
+                [class.text-gray-600]="doc.status === 'Inactive'"
+                class="px-2.5 py-0.5 rounded-full text-xs font-bold transition">
+                {{ doc.status }}
+              </button>
+            </td>
+            <td class="px-6 py-4 text-right space-x-2">
+              <button (click)="openEditModal(doc)"
+                class="text-xs font-bold text-blue-600 hover:text-blue-800 transition">
+                Edit
+              </button>
+              <button (click)="deleteDoctor(doc._id)"
+                class="text-xs font-bold text-red-600 hover:text-red-800 transition">
+                Delete
+              </button>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+  }
+
+  <!-- ════════════ Tab 3: Clinic Branches (Hospitals) List ════════════ -->
+  @if (activeTab() === 'hospitals') {
+  <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-gray-50 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wider">
+            <th class="px-6 py-4">Clinic Name</th>
+            <th class="px-6 py-4">City</th>
+            <th class="px-6 py-4">Address</th>
+            <th class="px-6 py-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50 text-sm">
+          @for (hosp of hospitals(); track hosp._id) {
+          <tr class="hover:bg-gray-50/50">
+            <td class="px-6 py-4 font-bold text-gray-900">{{ hosp.name }}</td>
+            <td class="px-6 py-4 font-medium text-gray-600">{{ hosp.city }}</td>
+            <td class="px-6 py-4 text-xs text-gray-500">{{ hosp.address || 'N/A' }}</td>
+            <td class="px-6 py-4 text-right space-x-2">
+              <button (click)="openEditHospital(hosp)"
+                class="text-xs font-bold text-blue-600 hover:text-blue-800 transition">
+                Edit
+              </button>
+              <button (click)="deleteHospitalBtn(hosp._id)"
+                class="text-xs font-bold text-red-600 hover:text-red-800 transition">
+                Delete
+              </button>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+  }
+
+  <!-- ════════════ Tab 4: Bookings Audit ════════════ -->
+  @if (activeTab() === 'appointments') {
+  <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-gray-50 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wider">
+            <th class="px-6 py-4">Date / Slot</th>
+            <th class="px-6 py-4">Patient</th>
+            <th class="px-6 py-4">Doctor</th>
+            <th class="px-6 py-4">Reason / Symptoms</th>
+            <th class="px-6 py-4">Status</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50 text-sm">
+          @for (app of appointments(); track app._id) {
+          <tr class="hover:bg-gray-50/50">
+            <td class="px-6 py-4">
+              <div class="text-xs font-bold">
+                <p class="text-gray-900">{{ formatDate(app.appointmentDate) }}</p>
+                <p class="text-gray-400 font-semibold">{{ app.appointmentTime }}</p>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <div class="text-xs">
+                <strong class="text-gray-800 block font-bold">{{ app.patientName }}</strong>
+                <span class="text-gray-400 font-semibold">{{ app.patientEmail }}</span>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <div class="text-xs">
+                <strong class="text-gray-800 block font-bold">{{ app.doctorName }}</strong>
+                <span class="text-blue-600 uppercase font-extrabold tracking-wider text-[10px]">{{
+                  app.doctorSpecialization }}</span>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <div class="text-xs max-w-xs space-y-1">
+                <p class="text-gray-700 font-semibold">Reason: {{ app.reasonForVisit }}</p>
+                @if (app.symptoms.length > 0) {
+                <p class="text-gray-400 font-semibold">Symptoms: {{ app.symptoms.join(', ') }}</p>
+                }
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <span [class]="getStatusClass(app.status)"
+                class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider">
+                {{ app.status }}
+              </span>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+  }
+
+  }
+
+  <!-- ════════════ DOCTOR CREATE / EDIT OVERLAY MODAL ════════════ -->
+  @if (showDoctorModal()) {
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+    <div
+      class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 sm:p-8 space-y-6 animate-scale-up">
+      <div class="flex items-center justify-between border-b border-gray-100 pb-4">
+        <h3 class="text-lg font-bold text-gray-900">{{ isEditing() ? 'Edit Doctor Profile' : 'Register New Doctor' }}
+        </h3>
+        <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600 text-lg">&times;</button>
+      </div>
+
+      <form [formGroup]="doctorForm" (ngSubmit)="saveDoctor()" class="space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Full name -->
+          <div>
+            <label for="docNameIn" class="block text-xs font-bold text-gray-700 uppercase mb-1">Full Name *</label>
+            <input id="docNameIn" type="text" formControlName="fullName"
+              class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+          </div>
+
+          <!-- Specialization -->
+          <div>
+            <label for="docSpecIn" class="block text-xs font-bold text-gray-700 uppercase mb-1">Specialization *</label>
+            <select id="docSpecIn" formControlName="specialization"
+              class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+              @for (spec of specializationOptions; track spec) {
+              <option [value]="spec">{{ spec }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Qualification -->
+          <div>
+            <label for="docQualIn" class="block text-xs font-bold text-gray-700 uppercase mb-1">Qualification *</label>
+            <input id="docQualIn" type="text" placeholder="e.g. MBBS, MD - General Medicine"
+              formControlName="qualification"
+              class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+          </div>
+
+          <!-- Experience -->
+          <div>
+            <label for="docExpIn" class="block text-xs font-bold text-gray-700 uppercase mb-1">Experience (Years)
+              *</label>
+            <input id="docExpIn" type="number" formControlName="experience"
+              class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+          </div>
+
+          <!-- Hospital Dropdown (Dynamic Select) -->
+          <div>
+            <label for="docHospSelect" class="block text-xs font-bold text-gray-700 uppercase mb-1">Clinic Branch
+              *</label>
+            <select id="docHospSelect" formControlName="hospitalId" (change)="onHospitalSelect()"
+              class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+              <option value="">Select Clinic Location</option>
+              @for (h of hospitals(); track h._id) {
+              <option [value]="h._id">{{ h.name }} ({{ h.city }})</option>
+              }
+            </select>
+          </div>
+
+          <!-- Consultation Fee -->
+          <div>
+            <label for="docFeeIn" class="block text-xs font-bold text-gray-700 uppercase mb-1">Consultation Fee ($)
+              *</label>
+            <input id="docFeeIn" type="number" formControlName="consultationFee"
+              class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label for="docEmailIn" class="block text-xs font-bold text-gray-700 uppercase mb-1">Email Address *</label>
+            <input id="docEmailIn" type="email" formControlName="email"
+              class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+          </div>
+
+          <!-- Phone -->
+          <div>
+            <label for="docPhoneIn" class="block text-xs font-bold text-gray-700 uppercase mb-1">Phone Number *</label>
+            <input id="docPhoneIn" type="text" formControlName="phone"
+              class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+          </div>
+
+          <!-- Profile Image URL -->
+          <div>
+            <label for="docImgIn" class="block text-xs font-bold text-gray-700 uppercase mb-1">Profile Photo URL</label>
+            <input id="docImgIn" type="text" formControlName="profileImage"
+              class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+          </div>
+
+          <!-- Password -->
+          <div>
+            <label for="docPassIn" class="block text-xs font-bold text-gray-700 uppercase mb-1">
+              Password {{ isEditing() ? '(Leave blank to keep same)' : '*' }}
+            </label>
+            <input id="docPassIn" type="password" formControlName="password"
+              class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+          </div>
+        </div>
+
+        <!-- About Biography -->
+        <div>
+          <label for="docAboutIn" class="block text-xs font-bold text-gray-700 uppercase mb-1">About Doctor</label>
+          <textarea id="docAboutIn" rows="2" formControlName="about"
+            class="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"></textarea>
+        </div>
+
+        <!-- Available Days Selection -->
+        <div>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Available Days *</label>
+          <div class="flex flex-wrap gap-2">
+            @for (day of dayOptions; track day) {
+            <button type="button" (click)="toggleDay(day)" [class.bg-blue-600]="isDaySelected(day)"
+              [class.text-white]="isDaySelected(day)"
+              class="px-3 py-1.5 text-xs font-bold rounded-xl border border-gray-200 transition">
+              {{ day.slice(0, 3) }}
+            </button>
+            }
+          </div>
+        </div>
+
+        <!-- Available Slots Selection -->
+        <div>
+          <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Available Time Slots *</label>
+          <div class="grid grid-cols-4 gap-2">
+            @for (slot of slotOptions; track slot) {
+            <button type="button" (click)="toggleSlot(slot)" [class.bg-blue-600]="isSlotSelected(slot)"
+              [class.text-white]="isSlotSelected(slot)"
+              class="px-2.5 py-1.5 text-[11px] font-bold rounded-xl border border-gray-200 transition">
+              {{ slot }}
+            </button>
+            }
+          </div>
+        </div>
+
+        <!-- Submit Buttons -->
+        <div class="flex justify-end gap-2 pt-4 border-t border-gray-100">
+          <button type="button" (click)="closeModal()"
+            class="px-5 py-2.5 border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 text-sm font-semibold rounded-xl transition shadow-xs">
+            Cancel
+          </button>
+          <button type="submit"
+            class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition shadow-sm">
+            Save Doctor
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  }
+
+  <!-- ════════════ HOSPITAL CREATE / EDIT OVERLAY MODAL ════════════ -->
+  @if (showHospitalModal()) {
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl p-6 sm:p-8 space-y-6 animate-scale-up">
+      <div class="flex items-center justify-between border-b border-gray-100 pb-4">
+        <h3 class="text-lg font-bold text-gray-900">{{ isEditingHospital() ? 'Edit Clinic Branch' : 'Add Clinic Branch'
+          }}</h3>
+        <button (click)="showHospitalModal.set(false)"
+          class="text-gray-400 hover:text-gray-600 text-lg">&times;</button>
+      </div>
+
+      <form [formGroup]="hospitalForm" (ngSubmit)="saveHospital()" class="space-y-4">
+        <div>
+          <label for="hospNameIn" class="block text-xs font-bold text-gray-700 uppercase mb-1">Clinic Name *</label>
+          <input id="hospNameIn" type="text" formControlName="name"
+            class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+        </div>
+
+        <div>
+          <label for="hospCityIn" class="block text-xs font-bold text-gray-700 uppercase mb-1">City *</label>
+          <input id="hospCityIn" type="text" formControlName="city"
+            class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+        </div>
+
+        <div>
+          <label for="hospAddrIn" class="block text-xs font-bold text-gray-700 uppercase mb-1">Street Address</label>
+          <input id="hospAddrIn" type="text" formControlName="address"
+            class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+        </div>
+
+        <!-- Submit Buttons -->
+        <div class="flex justify-end gap-2 pt-4 border-t border-gray-100">
+          <button type="button" (click)="showHospitalModal.set(false)"
+            class="px-5 py-2.5 border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 text-sm font-semibold rounded-xl transition shadow-xs">
+            Cancel
+          </button>
+          <button type="submit"
+            class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition shadow-sm">
+            Save Clinic
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  }
+
+</div>
+</div>

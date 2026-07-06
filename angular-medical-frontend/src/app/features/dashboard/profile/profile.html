@@ -1,0 +1,229 @@
+<div class="min-h-screen bg-dashboard-theme transition-colors duration-300 p-4 sm:p-6 pb-20">
+  <div class="max-w-5xl mx-auto space-y-8 animate-fadeIn">
+
+  <!-- Page header -->
+  <div class="flex items-center justify-between border-b border-gray-150 pb-5">
+    <div>
+      <span class="text-xxs font-bold text-teal-500 uppercase tracking-widest block mb-1">Account & Settings</span>
+      <h1 class="text-2xl font-extrabold text-slate-800 leading-tight">Patient Profile</h1>
+    </div>
+    <span
+      class="px-3 py-1 bg-slate-900 border border-slate-850 text-teal-400 text-xxs font-mono rounded-xl shadow-inner uppercase tracking-wider">
+      Member Since 2026
+    </span>
+  </div>
+
+  <!-- Success toast -->
+  @if (saved()) {
+  <div
+    class="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 rounded-2xl px-4 py-3.5 shadow-sm animate-pulse">
+    <span class="text-base">✅</span>
+    <span class="text-xs font-bold uppercase tracking-wider">Profile updated successfully.</span>
+  </div>
+  }
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+    <!-- ── Avatar card (Left 4 cols) ── -->
+    <div
+      class="lg:col-span-4 bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex flex-col items-center text-center relative overflow-hidden">
+      <!-- Background glow -->
+      <div
+        class="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(20,184,166,0.03)_0%,transparent_55%)] pointer-events-none">
+      </div>
+
+      <!-- Avatar wrapper with camera button -->
+      <div class="relative mb-5 group">
+        <div
+          class="w-28 h-28 rounded-full bg-gradient-to-br from-blue-500 via-teal-400 to-indigo-600 flex items-center justify-center text-white text-4xl font-extrabold shadow-lg transition duration-500 group-hover:scale-105">
+          {{ userInitials }}
+        </div>
+        <button
+          class="absolute bottom-1 right-1 w-8 h-8 bg-slate-900 border border-slate-800 rounded-full flex items-center justify-center text-teal-400 shadow-md hover:bg-slate-800 hover:scale-110 transition duration-300"
+          aria-label="Change avatar">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+              d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button>
+      </div>
+
+      <h2 class="text-base font-extrabold text-slate-800 uppercase tracking-wide">{{ authService.userFullName() }}</h2>
+
+      <span class="mt-2 px-3 py-0.5 border rounded-lg text-xxs font-extrabold uppercase tracking-widest shadow-xs"
+        [class.bg-blue-50]="authService.currentUser()?.role === 'patient'"
+        [class.text-blue-600]="authService.currentUser()?.role === 'patient'"
+        [class.border-blue-100]="authService.currentUser()?.role === 'patient'"
+        [class.bg-teal-50]="authService.currentUser()?.role === 'doctor'"
+        [class.text-teal-600]="authService.currentUser()?.role === 'doctor'"
+        [class.border-teal-100]="authService.currentUser()?.role === 'doctor'"
+        [class.bg-red-50]="authService.currentUser()?.role === 'admin'"
+        [class.text-red-600]="authService.currentUser()?.role === 'admin'"
+        [class.border-red-100]="authService.currentUser()?.role === 'admin'">
+        {{ authService.currentUser()?.role }} account
+      </span>
+
+      <p class="text-xxs font-bold text-gray-400 font-mono mt-3">{{ authService.currentUser()?.email }}</p>
+
+      <div
+        class="w-full mt-6 pt-5 border-t border-gray-100 space-y-3.5 text-left text-xxs font-bold text-gray-500 uppercase tracking-wider">
+        <div class="flex items-center gap-3.5">
+          <span class="text-sm">🛡️</span>
+          <span>Account Verified & Secure</span>
+        </div>
+        <div class="flex items-center gap-3.5">
+          <span class="text-sm">🔬</span>
+          <span>Digital Twin Sync Status: Active</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Edit form (Right 8 cols) ── -->
+    <div class="lg:col-span-8 bg-white border border-gray-100 rounded-3xl p-6 sm:p-8 shadow-sm">
+      <div class="flex items-center justify-between mb-6 pb-2 border-b border-gray-50">
+        <h3 class="font-extrabold text-slate-800 text-sm tracking-wider uppercase">Personal Profile Details</h3>
+        @if (!editing()) {
+        <button type="button" (click)="startEdit()"
+          class="flex items-center gap-2 px-3.5 py-1.5 bg-blue-50 border border-blue-100 hover:bg-blue-100 text-blue-600 text-xxs font-extrabold uppercase tracking-wider rounded-xl transition duration-300">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          Edit Profile
+        </button>
+        }
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="space-y-5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+          <!-- First name -->
+          <div class="space-y-1.5">
+            <label class="block text-xxs font-extrabold text-gray-400 uppercase tracking-widest">First Name</label>
+            <input type="text" formControlName="firstName" [readonly]="!editing()"
+              class="w-full px-4 py-2.5 border rounded-2xl text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-teal-400/30"
+              [class.bg-gray-50/50]="!editing()" [class.text-gray-500]="!editing()" [class.border-gray-150]="!editing()"
+              [class.border-gray-300]="editing()" />
+            @if (form.get('firstName')?.invalid && form.get('firstName')?.touched) {
+            <p class="text-[10px] font-bold text-red-500">First name is required (min 2 chars).</p>
+            }
+          </div>
+
+          <!-- Last name -->
+          <div class="space-y-1.5">
+            <label class="block text-xxs font-extrabold text-gray-400 uppercase tracking-widest">Last Name</label>
+            <input type="text" formControlName="lastName" [readonly]="!editing()"
+              class="w-full px-4 py-2.5 border rounded-2xl text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-teal-400/30"
+              [class.bg-gray-50/50]="!editing()" [class.text-gray-500]="!editing()" [class.border-gray-150]="!editing()"
+              [class.border-gray-300]="editing()" />
+            @if (form.get('lastName')?.invalid && form.get('lastName')?.touched) {
+            <p class="text-[10px] font-bold text-red-500">Last name is required (min 2 chars).</p>
+            }
+          </div>
+
+          <!-- Email (always read-only) -->
+          <div class="space-y-1.5">
+            <label class="block text-xxs font-extrabold text-gray-400 uppercase tracking-widest">Email Address</label>
+            <input type="email" formControlName="email" readonly
+              class="w-full px-4 py-2.5 border border-gray-150 rounded-2xl text-xs font-bold bg-gray-50/50 text-gray-400 font-mono focus:outline-none" />
+          </div>
+
+          <!-- Role (always read-only) -->
+          <div class="space-y-1.5">
+            <label class="block text-xxs font-extrabold text-gray-400 uppercase tracking-widest">Account Role</label>
+            <input type="text" formControlName="role" readonly
+              class="w-full px-4 py-2.5 border border-gray-150 rounded-2xl text-xs font-bold bg-gray-50/50 text-gray-400 capitalize focus:outline-none" />
+          </div>
+
+          <!-- Phone -->
+          <div class="space-y-1.5">
+            <label class="block text-xxs font-extrabold text-gray-400 uppercase tracking-widest">Phone Number</label>
+            <input type="tel" formControlName="phone" [readonly]="!editing()" placeholder="+1 (555) 000-0000"
+              class="w-full px-4 py-2.5 border rounded-2xl text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-teal-400/30"
+              [class.bg-gray-50/50]="!editing()" [class.text-gray-500]="!editing()" [class.border-gray-150]="!editing()"
+              [class.border-gray-300]="editing()" />
+          </div>
+
+          <!-- Date of birth -->
+          <div class="space-y-1.5">
+            <label class="block text-xxs font-extrabold text-gray-400 uppercase tracking-widest">Date of Birth</label>
+            <input type="date" formControlName="dateOfBirth" [readonly]="!editing()"
+              class="w-full px-4 py-2.5 border rounded-2xl text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-teal-400/30"
+              [class.bg-gray-50/50]="!editing()" [class.text-gray-500]="!editing()" [class.border-gray-150]="!editing()"
+              [class.border-gray-300]="editing()" />
+          </div>
+
+          <!-- Address (full width) -->
+          <div class="sm:col-span-2 space-y-1.5">
+            <label class="block text-xxs font-extrabold text-gray-400 uppercase tracking-widest">Residential
+              Address</label>
+            <input type="text" formControlName="address" [readonly]="!editing()"
+              placeholder="Street Address, City, Country"
+              class="w-full px-4 py-2.5 border rounded-2xl text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-teal-400/30"
+              [class.bg-gray-50/50]="!editing()" [class.text-gray-500]="!editing()" [class.border-gray-150]="!editing()"
+              [class.border-gray-300]="editing()" />
+          </div>
+
+          <!-- Bio (full width) -->
+          <div class="sm:col-span-2 space-y-1.5">
+            <label class="block text-xxs font-extrabold text-gray-400 uppercase tracking-widest">User Bio</label>
+            <textarea formControlName="bio" [readonly]="!editing()" rows="3"
+              placeholder="Tell us a little about your wellness journey..."
+              class="w-full px-4 py-2.5 border rounded-2xl text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-teal-400/30 resize-none"
+              [class.bg-gray-50/50]="!editing()" [class.text-gray-500]="!editing()" [class.border-gray-150]="!editing()"
+              [class.border-gray-300]="editing()"></textarea>
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        @if (editing()) {
+        <div class="flex items-center gap-3.5 mt-6 pt-5 border-t border-gray-100">
+          <button type="submit"
+            class="px-6 py-2 bg-teal-500 hover:bg-teal-600 text-white text-xxs font-extrabold uppercase tracking-wider rounded-xl shadow-md shadow-teal-500/10 transition duration-300">
+            Save changes
+          </button>
+          <button type="button" (click)="cancelEdit()"
+            class="px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xxs font-extrabold uppercase tracking-wider rounded-xl transition duration-300">
+            Cancel
+          </button>
+        </div>
+        }
+      </form>
+    </div>
+  </div>
+
+  <!-- Security section -->
+  <div class="bg-white border border-gray-100 rounded-3xl p-6 sm:p-8 shadow-sm space-y-5">
+    <h3 class="font-extrabold text-slate-800 text-sm tracking-wider uppercase pb-2 border-b border-gray-50">Security &
+      Protection</h3>
+    <div class="divide-y divide-gray-100">
+
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4">
+        <div>
+          <p class="text-xs font-bold text-slate-800 uppercase tracking-wide">Account Password</p>
+          <p class="text-[10px] text-gray-400 font-mono mt-0.5">Last updated: Configured on account registration</p>
+        </div>
+        <button
+          class="px-3.5 py-1.5 border border-gray-250 text-slate-700 text-xxs font-extrabold uppercase tracking-wider rounded-xl hover:bg-gray-50 transition duration-300 flex-shrink-0">
+          Change password
+        </button>
+      </div>
+
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4">
+        <div>
+          <p class="text-xs font-bold text-slate-800 uppercase tracking-wide">Two-Factor Authentication (2FA)</p>
+          <p class="text-[10px] text-gray-400 font-mono mt-0.5">Add an extra secure cryptographic shield to verification
+            checks</p>
+        </div>
+        <button
+          class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xxs font-extrabold uppercase tracking-wider rounded-xl transition duration-300 flex-shrink-0">
+          Enable 2FA Shield
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>

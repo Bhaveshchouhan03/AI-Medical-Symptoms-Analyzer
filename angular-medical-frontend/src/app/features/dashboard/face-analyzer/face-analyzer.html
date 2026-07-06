@@ -1,0 +1,432 @@
+<div class="min-h-screen bg-ai-theme transition-colors duration-300 p-4 sm:p-6 pb-20">
+  <div class="p-6 sm:p-8 max-w-6xl mx-auto space-y-8 animate-fadeIn">
+
+  <!-- Safety Compliance Alert Box -->
+  <div
+    class="p-4 bg-teal-500/10 border border-teal-500/20 text-teal-900 dark:text-teal-250 text-xs font-semibold rounded-2xl flex items-start gap-3">
+    <span class="text-base flex-shrink-0 mt-0.5">ℹ️</span>
+    <p class="leading-relaxed">
+      <strong>Educational Wellness Insights Only:</strong> This AI Face Health Analyzer provides educational wellness
+      insights only. Facial appearance alone cannot determine a person's health. This tool is not a substitute for
+      professional medical advice, diagnosis, or treatment.
+    </p>
+  </div>
+
+  <!-- Header Section -->
+  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div>
+      <span class="text-xxs font-bold text-teal-400 uppercase tracking-widest block mb-1">Wellness Diagnostics</span>
+      <h1 class="text-3xl font-extrabold text-slate-800 leading-tight">Face Health Analyzer</h1>
+    </div>
+
+    <!-- View Switch Tabs -->
+    <div class="flex bg-slate-900/40 p-1.5 rounded-2xl border border-slate-800/20 backdrop-blur-md">
+      <button (click)="activeTab.set('dashboard')" [class.bg-teal-500]="activeTab() === 'dashboard'"
+        [class.text-white]="activeTab() === 'dashboard'" [class.text-slate-400]="activeTab() === 'dashboard'"
+        class="px-4 py-2 rounded-xl text-xs font-bold transition duration-300">
+        Webcam Scan
+      </button>
+      <button (click)="activeTab.set('history')" [class.bg-teal-500]="activeTab() === 'history'"
+        [class.text-white]="activeTab() === 'history'" [class.text-slate-400]="activeTab() === 'history'"
+        class="px-4 py-2 rounded-xl text-xs font-bold transition duration-300">
+        Scan History
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════ WEBCAM & SCANNER DASHBOARD ═══════════════ -->
+  <div *ngIf="activeTab() === 'dashboard'" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+    <!-- Left Panel: Webcam Feed / Image Selector (5 columns) -->
+    <div
+      class="lg:col-span-5 bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex flex-col gap-6 relative overflow-hidden">
+
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-bold text-gray-800 tracking-wide uppercase">Webcam Capture</h3>
+        <span class="w-2.5 h-2.5 rounded-full border"
+          [ngClass]="cameraActive() ? 'bg-green-500 border-green-300 animate-pulse' : 'bg-gray-300 border-gray-200'"></span>
+      </div>
+
+      <!-- Live Stream View Container -->
+      <div
+        class="relative w-full aspect-video bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center min-h-[220px]">
+
+        <!-- Background face vector watermark when camera offline -->
+        <div *ngIf="!cameraActive() && !capturedImageBase64()"
+          class="flex flex-col items-center gap-2 text-slate-500 text-center px-4">
+          <span class="text-4xl animate-pulse">👤</span>
+          <span class="text-xxs font-bold uppercase tracking-widest text-slate-400">Webcam Not Active</span>
+          <p class="text-[10px] text-slate-500 max-w-[200px]">Start the webcam feed or upload a photo to begin visible
+            wellness checks.</p>
+        </div>
+
+        <!-- Static display if captured or uploaded image exists -->
+        <img *ngIf="capturedImageBase64() && !cameraActive()" [src]="capturedImageBase64()"
+          class="w-full h-full object-cover animate-fadeIn" />
+
+        <!-- Camera live output -->
+        <video #webcamVideo autoplay playsinline muted [class.hidden]="!cameraActive()"
+          class="w-full h-full object-cover">
+        </video>
+
+        <!-- Biometric canvas overlay (Teal lines) -->
+        <canvas #overlayCanvas width="480" height="320" [class.hidden]="!cameraActive()"
+          class="absolute inset-0 w-full h-full pointer-events-none z-10">
+        </canvas>
+
+        <!-- Progress overlay overlay when scanning -->
+        <div *ngIf="scanning()"
+          class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center p-6 space-y-4">
+          <span class="text-xxs font-bold text-teal-400 uppercase tracking-widest animate-pulse">Running mesh check: {{
+            progress() }}%</span>
+          <div class="w-2/3 h-1 bg-slate-800 rounded-full overflow-hidden">
+            <div class="h-full bg-teal-400 rounded-full transition-all duration-300" [style.width.%]="progress()"></div>
+          </div>
+          <span class="text-[9px] font-mono text-slate-500 uppercase tracking-wider animate-pulse">SYS: Analyzing facial
+            landmarks...</span>
+        </div>
+
+        <!-- AI processing loader -->
+        <div *ngIf="loading()"
+          class="absolute inset-0 bg-slate-950/85 backdrop-blur-sm z-20 flex flex-col items-center justify-center p-6 space-y-3">
+          <div class="w-8 h-8 rounded-full border-4 border-t-teal-400 border-slate-800 animate-spin"></div>
+          <span class="text-xxs font-bold text-teal-400 uppercase tracking-widest">Generating recommendations...</span>
+        </div>
+      </div>
+
+      <!-- Privacy check box toggle -->
+      <div class="flex items-center gap-3 p-3 bg-gray-50 border border-gray-100 rounded-xl">
+        <input type="checkbox" [(ngModel)]="savePhoto" id="savePhotoCheck"
+          class="w-4.5 h-4.5 rounded border-gray-300 text-teal-500 focus:ring-teal-400 transition" />
+        <label for="savePhotoCheck" class="text-xxs font-bold text-gray-600 cursor-pointer uppercase tracking-wider">
+          Save base64 frame in MongoDB Scan history
+        </label>
+      </div>
+
+      <!-- Controls row -->
+      <div class="flex flex-col gap-3">
+        <!-- Start/Stop Capture -->
+        <button *ngIf="!cameraActive()" (click)="startWebcam()"
+          class="w-full py-2.5 bg-gradient-to-r from-teal-400 to-teal-600 hover:from-teal-500 hover:to-teal-700 text-white rounded-xl text-xs font-bold shadow-md shadow-teal-500/10 transition duration-300 flex items-center justify-center gap-2">
+          <span>📷</span> Start Camera
+        </button>
+
+        <div *ngIf="cameraActive()" class="grid grid-cols-2 gap-3">
+          <button (click)="stopWebcam()"
+            class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition duration-300">
+            Cancel feed
+          </button>
+          <button (click)="captureWebcamScan()"
+            class="py-2.5 bg-teal-500 hover:bg-teal-600 text-white rounded-xl text-xs font-bold transition duration-300">
+            Capture Frame
+          </button>
+        </div>
+
+        <!-- Divider -->
+        <div class="flex items-center justify-center my-1">
+          <span class="h-px bg-gray-100 flex-1"></span>
+          <span class="px-3 text-xxs font-bold text-gray-400 uppercase tracking-wider">Or upload</span>
+          <span class="h-px bg-gray-100 flex-1"></span>
+        </div>
+
+        <!-- Custom Image Upload input file -->
+        <div class="relative w-full">
+          <input type="file" (change)="onFileSelected($event)" accept="image/*" id="faceImageUpload" class="hidden" />
+          <label for="faceImageUpload"
+            class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-teal-400 text-center rounded-xl text-xs font-bold border border-slate-850 shadow-sm cursor-pointer transition duration-300 block">
+            📁 Select Picture File
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel: Core Analysis Result displays (7 columns) -->
+    <div class="lg:col-span-7 space-y-6">
+
+      <!-- Informational warning if no results generated -->
+      <div *ngIf="!selectedScan() && !loading()"
+        class="bg-white border border-gray-100 rounded-3xl p-8 text-center text-gray-400 shadow-sm min-h-[300px] flex flex-col items-center justify-center gap-2">
+        <span class="text-4xl">🧬</span>
+        <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wide">Analysis Results Queue</h3>
+        <p class="text-xs text-gray-400 max-w-[280px]">Results appear here instantly once facial biometric points are
+          processed.</p>
+      </div>
+
+      <!-- Loaded Details card -->
+      <div *ngIf="selectedScan()" class="space-y-6 animate-fadeIn">
+
+        <!-- Score and Indicator Breakdown Card -->
+        <div
+          class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex flex-col sm:flex-row items-center gap-8 relative overflow-hidden">
+
+          <!-- Large Circular Progress circle -->
+          <div class="relative w-36 h-36 flex items-center justify-center flex-shrink-0">
+            <svg class="w-full h-full transform -rotate-90">
+              <circle cx="72" cy="72" r="58" stroke="rgba(241, 245, 249, 0.9)" stroke-width="10" fill="transparent" />
+              <circle cx="72" cy="72" r="58" stroke="url(#scoreGrad)" stroke-width="10" fill="transparent"
+                [attr.stroke-dasharray]="2 * 3.14159 * 58"
+                [attr.stroke-dashoffset]="2 * 3.14159 * 58 * (1 - (selectedScan()?.score || 0) / 100)"
+                stroke-linecap="round" class="transition-all duration-1000" />
+
+              <!-- Gradient definitions -->
+              <defs>
+                <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#2DD4BF" /> <!-- Teal -->
+                  <stop offset="100%" stop-color="#4F46E5" /> <!-- Indigo -->
+                </linearGradient>
+              </defs>
+            </svg>
+
+            <div class="absolute flex flex-col items-center">
+              <span class="text-3xl font-extrabold text-slate-800 leading-none">{{ selectedScan()?.score }}</span>
+              <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-1">Wellness</span>
+            </div>
+          </div>
+
+          <!-- Score Breakdown descriptions -->
+          <div class="flex-1 space-y-3.5 w-full">
+            <div class="flex items-center justify-between border-b border-gray-100 pb-2">
+              <div>
+                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Latest Evaluation</span>
+                <h4 class="text-base font-extrabold text-slate-800">{{ formatDate(selectedScan()?.date) }}</h4>
+              </div>
+              <span class="px-2.5 py-0.5 border rounded-lg text-xxs font-extrabold uppercase tracking-widest shadow-sm"
+                [ngClass]="getScoreCategoryClasses(selectedScan()?.category)">
+                {{ selectedScan()?.category }}
+              </span>
+            </div>
+
+            <!-- Health indicator breakdown items -->
+            <div class="grid grid-cols-2 gap-3 text-xxs text-gray-500 font-mono">
+              <div><span class="font-bold text-gray-400">Eye Redness:</span> <span class="font-bold text-slate-700">{{
+                  selectedScan()?.wellnessIndicators?.eyeRedness }}</span></div>
+              <div><span class="font-bold text-gray-400">Dark Circles:</span> <span class="font-bold text-slate-700">{{
+                  selectedScan()?.wellnessIndicators?.darkCircles }}</span></div>
+              <div><span class="font-bold text-gray-400">Skin Type:</span> <span class="font-bold text-slate-700">{{
+                  selectedScan()?.wellnessIndicators?.skinType }}</span></div>
+              <div><span class="font-bold text-gray-400">Skin Tone:</span> <span class="font-bold text-slate-700">{{
+                  selectedScan()?.wellnessIndicators?.skinBrightness }}</span></div>
+              <div><span class="font-bold text-gray-400">Symmetry:</span> <span class="font-bold text-slate-700">{{
+                  selectedScan()?.wellnessIndicators?.symmetry }}</span></div>
+              <div><span class="font-bold text-gray-400">Smile:</span> <span class="font-bold text-slate-700">{{
+                  selectedScan()?.wellnessIndicators?.smile }}</span></div>
+              <div><span class="font-bold text-gray-400">Skin Breakouts:</span> <span
+                  class="font-bold text-slate-700">{{ selectedScan()?.wellnessIndicators?.skinBreakouts || 'None'
+                  }}</span></div>
+              <div><span class="font-bold text-gray-400">Jaundice Sign:</span> <span class="font-bold text-slate-700">{{
+                  selectedScan()?.wellnessIndicators?.jaundiceIndicator || 'None' }}</span></div>
+              <div><span class="font-bold text-gray-400">Puffiness:</span> <span class="font-bold text-slate-700">{{
+                  selectedScan()?.wellnessIndicators?.puffiness || 'None' }}</span></div>
+              <div><span class="font-bold text-gray-400">Skin Redness:</span> <span class="font-bold text-slate-700">{{
+                  selectedScan()?.wellnessIndicators?.skinRedness || 'None' }}</span></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Stress, Hydration, Fatigue progress sliders -->
+        <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-5">
+          <h3 class="text-sm font-bold text-gray-800 tracking-wide uppercase">Estimated Vitals appearance</h3>
+
+          <div class="space-y-4">
+            <!-- Hydration -->
+            <div class="space-y-1">
+              <div class="flex items-center justify-between text-xxs font-bold">
+                <span class="text-slate-700">Estimated Hydration Level</span>
+                <span class="text-teal-500 font-mono font-extrabold">{{ selectedScan()?.wellnessIndicators?.hydration
+                  }}/10</span>
+              </div>
+              <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full bg-teal-400 rounded-full"
+                  [style.width.%]="(selectedScan()?.wellnessIndicators?.hydration || 0) * 10"></div>
+              </div>
+            </div>
+
+            <!-- Fatigue -->
+            <div class="space-y-1">
+              <div class="flex items-center justify-between text-xxs font-bold">
+                <span class="text-slate-700">Estimated Fatigue appearance</span>
+                <span class="text-amber-500 font-mono font-extrabold">{{ selectedScan()?.wellnessIndicators?.fatigue
+                  }}/10</span>
+              </div>
+              <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full bg-amber-400 rounded-full"
+                  [style.width.%]="(selectedScan()?.wellnessIndicators?.fatigue || 0) * 10"></div>
+              </div>
+            </div>
+
+            <!-- Stress -->
+            <div class="space-y-1">
+              <div class="flex items-center justify-between text-xxs font-bold">
+                <span class="text-slate-700">Estimated Stress appearance</span>
+                <span class="text-red-500 font-mono font-extrabold">{{ selectedScan()?.wellnessIndicators?.stress
+                  }}/10</span>
+              </div>
+              <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full bg-red-400 rounded-full"
+                  [style.width.%]="(selectedScan()?.wellnessIndicators?.stress || 0) * 10"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recommendations and Action Buttons -->
+        <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
+          <h3 class="text-sm font-bold text-gray-800 tracking-wide uppercase">AI Recommendations</h3>
+
+          <div class="space-y-2.5">
+            <div *ngFor="let rec of selectedScan()?.recommendations"
+              class="p-3 bg-gray-50 border border-gray-100 rounded-xl text-xs text-gray-700 font-medium leading-relaxed flex items-start gap-3">
+              <span class="text-teal-500 mt-0.5">✔</span>
+              <span>{{ rec }}</span>
+            </div>
+          </div>
+
+          <!-- Download / Delete / Scan Again actions -->
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-gray-100">
+            <button (click)="deleteHistoryItem(selectedScan()?._id || '')"
+              class="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xxs font-bold border border-red-200 transition duration-300">
+              Delete Record
+            </button>
+
+            <div class="flex items-center gap-2">
+              <button (click)="scanAgain()"
+                class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-teal-400 rounded-xl text-xxs font-bold border border-slate-800 transition duration-300">
+                🔄 Scan Again
+              </button>
+
+              <button (click)="downloadScanTextReport(selectedScan()?._id || '')"
+                class="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-xl text-xxs font-bold shadow-md shadow-teal-500/10 transition duration-300">
+                Download PDF Report
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ═══════════════ HISTORICAL LOGS PANEL ═══════════════ -->
+  <div *ngIf="activeTab() === 'history'" class="space-y-8 animate-fadeIn">
+
+    <!-- Sparkline Trends panel -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+      <!-- Wellness trend -->
+      <div class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Wellness Score Trend</span>
+          <span class="text-xs font-bold text-indigo-500 font-mono" *ngIf="history().length > 0">
+            Latest: {{ history()[0].score }}
+          </span>
+        </div>
+        <div
+          class="w-full h-14 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center border border-gray-100 relative">
+          <svg class="w-full h-full" *ngIf="history().length > 1">
+            <path [attr.d]="getSvgSparkline(getTrendHistoryArray('score'))" fill="none" stroke="#6366F1"
+              stroke-width="2.5" stroke-linecap="round" />
+          </svg>
+          <span class="text-xxs font-bold text-gray-400 uppercase tracking-widest font-mono"
+            *ngIf="history().length <= 1">Need more data</span>
+        </div>
+      </div>
+
+      <!-- Hydration trend -->
+      <div class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Hydration Appearance</span>
+          <span class="text-xs font-bold text-teal-500 font-mono" *ngIf="history().length > 0">
+            Latest: {{ history()[0].wellnessIndicators.hydration }}/10
+          </span>
+        </div>
+        <div
+          class="w-full h-14 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center border border-gray-100 relative">
+          <svg class="w-full h-full" *ngIf="history().length > 1">
+            <path [attr.d]="getSvgSparkline(getTrendHistoryArray('hydration'))" fill="none" stroke="#2DD4BF"
+              stroke-width="2.5" stroke-linecap="round" />
+          </svg>
+          <span class="text-xxs font-bold text-gray-400 uppercase tracking-widest font-mono"
+            *ngIf="history().length <= 1">Need more data</span>
+        </div>
+      </div>
+
+      <!-- Stress trend -->
+      <div class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Stress Appearance</span>
+          <span class="text-xs font-bold text-red-500 font-mono" *ngIf="history().length > 0">
+            Latest: {{ history()[0].wellnessIndicators.stress }}/10
+          </span>
+        </div>
+        <div
+          class="w-full h-14 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center border border-gray-100 relative">
+          <svg class="w-full h-full" *ngIf="history().length > 1">
+            <path [attr.d]="getSvgSparkline(getTrendHistoryArray('stress'))" fill="none" stroke="#EF4444"
+              stroke-width="2.5" stroke-linecap="round" />
+          </svg>
+          <span class="text-xxs font-bold text-gray-400 uppercase tracking-widest font-mono"
+            *ngIf="history().length <= 1">Need more data</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- History Table log -->
+    <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100">
+        <h3 class="text-sm font-bold text-gray-800 tracking-wide uppercase">Historical Scan Records</h3>
+      </div>
+
+      <div class="overflow-x-auto">
+        <div *ngIf="history().length === 0" class="p-8 text-center text-gray-400 font-semibold">
+          No face analyzer logs recorded. Go capture your first scan!
+        </div>
+
+        <table class="w-full text-left" *ngIf="history().length > 0">
+          <thead>
+            <tr class="bg-gray-50 border-b border-gray-100 text-xxs font-bold text-gray-400 uppercase tracking-widest">
+              <th class="px-6 py-3">Scan Date</th>
+              <th class="px-6 py-3">Face Score</th>
+              <th class="px-6 py-3">Mood</th>
+              <th class="px-6 py-3">Hydration</th>
+              <th class="px-6 py-3">Fatigue</th>
+              <th class="px-6 py-3">Stress</th>
+              <th class="px-6 py-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 text-xs font-semibold text-gray-700">
+            <tr *ngFor="let scan of history()" class="hover:bg-gray-50 transition">
+              <td class="px-6 py-4">{{ formatDate(scan.date) }}</td>
+              <td class="px-6 py-4 font-mono font-bold text-slate-900">
+                <span class="px-2 py-0.5 rounded border text-[10px] font-bold"
+                  [ngClass]="getScoreCategoryClasses(scan.category)">
+                  {{ scan.score }}/100
+                </span>
+              </td>
+              <td class="px-6 py-4 capitalize font-mono">{{ scan.mood }}</td>
+              <td class="px-6 py-4 font-mono">{{ scan.wellnessIndicators.hydration }}/10</td>
+              <td class="px-6 py-4 font-mono text-amber-500">{{ scan.wellnessIndicators.fatigue }}/10</td>
+              <td class="px-6 py-4 font-mono text-red-500">{{ scan.wellnessIndicators.stress }}/10</td>
+              <td class="px-6 py-4 text-right space-x-2">
+                <button (click)="selectedScan.set(scan); activeTab.set('dashboard')"
+                  class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xxs transition duration-300">
+                  Select
+                </button>
+                <button (click)="downloadScanTextReport(scan._id)"
+                  class="px-2.5 py-1.5 bg-teal-500/10 hover:bg-teal-500 text-teal-600 hover:text-white rounded-lg text-xxs transition duration-300">
+                  Export
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+</div>

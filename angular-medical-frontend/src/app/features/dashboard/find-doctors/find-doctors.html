@@ -1,0 +1,224 @@
+<div class="min-h-screen bg-doctor-theme text-slate-900 dark:text-slate-100 transition-colors duration-300 p-4 sm:p-6 pb-20 font-sans">
+  <div class="max-w-6xl mx-auto space-y-8 animate-fadeIn">
+
+  <!-- Header -->
+  <div class="border-b border-slate-200 dark:border-slate-800 pb-5">
+    <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Find &amp; Discover Doctors</h1>
+    <p class="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">Browse all registered specialist doctors, read patient review
+      boards, and book consultations.</p>
+  </div>
+
+  <!-- Search & Filter Card -->
+  <div class="p-6 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-5 shadow-xl backdrop-blur-md">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+
+      <!-- Search Name -->
+      <div class="space-y-1">
+        <label for="doctorNameInput" class="block text-xxs font-bold uppercase text-slate-550 dark:text-slate-450 tracking-wider">Doctor
+          Name</label>
+        <input id="doctorNameInput" type="text" [ngModel]="searchName()"
+          (ngModelChange)="searchName.set($event); search()" placeholder="e.g. Dr. Jameson"
+          class="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-650 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+
+      <!-- Specialization -->
+      <div class="space-y-1">
+        <label class="block text-xxs font-bold uppercase text-slate-550 dark:text-slate-450 tracking-wider">Specialization</label>
+        <select [ngModel]="searchSpecialization()" (ngModelChange)="searchSpecialization.set($event); search()"
+          class="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="" class="bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">All Specializations</option>
+          <option *ngFor="let spec of specializations" [value]="spec" class="bg-white dark:bg-slate-955 text-slate-900 dark:text-slate-100">{{ spec }}</option>
+        </select>
+      </div>
+
+      <!-- City -->
+      <div class="space-y-1">
+        <label class="block text-xxs font-bold uppercase text-slate-550 dark:text-slate-450 tracking-wider">City</label>
+        <select [ngModel]="searchCity()" (ngModelChange)="searchCity.set($event); search()"
+          class="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="" class="bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">All Cities</option>
+          <option *ngFor="let city of cities()" [value]="city" class="bg-white dark:bg-slate-955 text-slate-900 dark:text-slate-100">{{ city }}</option>
+        </select>
+      </div>
+
+      <!-- Hospital -->
+      <div class="space-y-1">
+        <label for="clinicNameInput" class="block text-xxs font-bold uppercase text-slate-555 dark:text-slate-450 tracking-wider">Hospital /
+          Clinic</label>
+        <input id="clinicNameInput" type="text" [ngModel]="searchHospital()"
+          (ngModelChange)="searchHospital.set($event); search()" placeholder="e.g. Metro Clinic"
+          class="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-650 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+
+    </div>
+
+    <!-- Collapsible Advanced Filters -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-3.5 border-t border-slate-200 dark:border-slate-800">
+
+      <!-- Language -->
+      <div class="space-y-1">
+        <label for="languageInput" class="block text-xxs font-bold uppercase text-slate-550 dark:text-slate-450 tracking-wider">Language Spoken</label>
+        <input id="languageInput" type="text" [ngModel]="searchLanguage()"
+          (ngModelChange)="searchLanguage.set($event); search()" placeholder="e.g. Spanish, English"
+          class="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-655 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+
+      <!-- Fee Slider -->
+      <div class="space-y-1">
+        <label class="block text-xxs font-bold uppercase text-slate-550 dark:text-slate-450 tracking-wider flex justify-between">
+          <span>Max Consultation Fee</span>
+          <span class="text-blue-600 dark:text-blue-400 font-extrabold">${{ searchFee() }}</span>
+        </label>
+        <input type="range" min="50" max="1000" step="50" [ngModel]="searchFee()"
+          (ngModelChange)="searchFee.set($event); search()"
+          class="w-full h-1 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500" />
+      </div>
+
+      <!-- Rating Selector -->
+      <div class="space-y-1">
+        <label class="block text-xxs font-bold uppercase text-slate-550 dark:text-slate-450 tracking-wider">Minimum Rating</label>
+        <select [ngModel]="searchRating()" (ngModelChange)="searchRating.set(+$event); search()"
+          class="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option [value]="0" class="bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">All Ratings</option>
+          <option [value]="4" class="bg-white dark:bg-slate-955 text-slate-900 dark:text-slate-100">★ 4.0 &amp; Above</option>
+          <option [value]="4.5" class="bg-white dark:bg-slate-955 text-slate-900 dark:text-slate-100">★ 4.5 &amp; Above</option>
+        </select>
+      </div>
+
+      <!-- Clear Filters CTA -->
+      <div class="flex items-end">
+        <button (click)="clearFilters()"
+          class="w-full px-4 py-2 bg-white dark:bg-slate-850 hover:bg-slate-50 dark:hover:bg-slate-900/60 text-slate-700 dark:text-slate-350 hover:text-slate-900 dark:hover:text-white text-xs font-bold border border-slate-200 dark:border-slate-800 rounded-xl transition duration-300 cursor-pointer shadow-xs">
+          🧹 Reset Filters
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Checkboxes row -->
+    <div class="flex items-center gap-6 flex-wrap text-xxs text-slate-600 dark:text-slate-450 pt-1 font-bold">
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input type="checkbox" [ngModel]="searchAvailableToday()"
+          (ngModelChange)="searchAvailableToday.set($event); search()"
+          class="rounded bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-800 text-blue-500 focus:ring-0" />
+        Available Today
+      </label>
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input type="checkbox" [ngModel]="searchOnline()" (ngModelChange)="searchOnline.set($event); search()"
+          class="rounded bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-800 text-blue-500 focus:ring-0" />
+        🌐 Online Consultations
+      </label>
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input type="checkbox" [ngModel]="searchOffline()" (ngModelChange)="searchOffline.set($event); search()"
+          class="rounded bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-800 text-blue-500 focus:ring-0" />
+        🏥 In-Clinic Visits
+      </label>
+    </div>
+
+  </div>
+
+  <!-- Listings Grid -->
+  <div *ngIf="isLoading()" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div *ngFor="let i of [1, 2]"
+      class="p-6 bg-white dark:bg-slate-900/20 border border-slate-200 dark:border-slate-800 rounded-3xl animate-pulse space-y-4 shadow-sm">
+      <div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/3"></div>
+      <div class="h-3 bg-slate-200 dark:bg-slate-800 rounded w-1/2"></div>
+      <div class="h-12 bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>
+    </div>
+  </div>
+
+  <div *ngIf="!isLoading()" class="space-y-6">
+    <!-- Error Alert -->
+    <div *ngIf="error()" class="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-650 dark:text-red-400 text-xs font-bold">
+      ⚠️ {{ error() }}
+    </div>
+
+    <!-- Empty view -->
+    <div *ngIf="doctors().length === 0" class="p-16 bg-white dark:bg-slate-900/20 border border-slate-200 dark:border-slate-800 rounded-3xl text-center shadow-sm">
+      <span class="text-4xl block">🔍</span>
+      <h3 class="text-sm font-bold text-slate-850 dark:text-slate-300 mt-4">No Matching Doctors Found</h3>
+      <p class="text-slate-500 dark:text-slate-500 text-xxs mt-1 font-semibold">Adjust search terms or reset filters to view all specialists.</p>
+    </div>
+
+    <!-- Cards Grid -->
+    <div *ngIf="doctors().length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div *ngFor="let doc of doctors()"
+        class="p-6 bg-white dark:bg-slate-900/30 hover:bg-slate-50/50 dark:hover:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700 rounded-3xl transition duration-300 shadow-xl flex flex-col justify-between gap-5 relative overflow-hidden group backdrop-blur-sm">
+
+        <!-- Bookmark Fav Toggle -->
+        <button (click)="toggleFavoriteDoc(doc._id)"
+          class="absolute right-4 top-4 w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-950/80 hover:bg-slate-200 dark:hover:bg-slate-950 flex items-center justify-center text-xs transition z-10 border border-slate-200 dark:border-slate-800 cursor-pointer">
+          <span [class.text-amber-500]="isDocFavorite(doc._id)"
+            [class.text-slate-400]="!isDocFavorite(doc._id)">★</span>
+        </button>
+
+        <div class="space-y-4">
+          <!-- Header info -->
+          <div class="flex items-start gap-4">
+            <div
+              class="w-14 h-14 bg-slate-50 dark:bg-slate-955 border border-slate-200 dark:border-slate-800 rounded-2xl flex items-center justify-center text-3xl font-bold flex-shrink-0 text-slate-700 dark:text-slate-300">
+              👨‍⚕️
+            </div>
+
+            <div class="space-y-1 min-w-0 pr-6">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <h3 class="text-sm font-bold text-slate-900 dark:text-white truncate">{{ doc.fullName }}</h3>
+                <span
+                  class="w-3.5 h-3.5 rounded-full bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20 flex items-center justify-center text-[8px] font-bold"
+                  title="Verified Specialist">✓</span>
+              </div>
+
+              <p class="text-xxs text-teal-650 dark:text-teal-400 font-bold uppercase tracking-wider">{{ doc.specialization }}</p>
+
+              <div class="flex items-center gap-1">
+                <span class="text-amber-555 text-xxs">★</span>
+                <span class="text-xxs text-slate-800 dark:text-slate-300 font-bold">{{ doc.rating || 5.0 }}</span>
+                <span class="text-[9px] text-slate-500 font-semibold">({{ doc.reviewsCount || 0 }} reviews)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Credentials -->
+          <div
+            class="p-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-xxs text-slate-700 dark:text-slate-300 space-y-1 font-semibold leading-relaxed">
+            <p><span class="text-slate-450 dark:text-slate-500">Degree:</span> {{ doc.medicalDegree || doc.qualification }}</p>
+            <p><span class="text-slate-450 dark:text-slate-500">Hospital:</span> {{ doc.hospitalName }}</p>
+            <p><span class="text-slate-450 dark:text-slate-500">Practice:</span> {{ doc.clinicName || 'City Diagnostics' }}</p>
+          </div>
+
+          <!-- Consultation options / timing indicators -->
+          <div class="flex items-center gap-x-4 gap-y-1.5 flex-wrap text-[10px] font-bold text-slate-500 pt-1">
+            <span class="flex items-center gap-1 text-slate-600 dark:text-slate-400">📅 Today Available</span>
+            <span
+              class="px-2 py-0.5 rounded bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 text-[8px] font-black uppercase"
+              *ngIf="doc.onlineConsultation">🌐 Video</span>
+            <span
+              class="px-2 py-0.5 rounded bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 text-[8px] font-black uppercase"
+              *ngIf="doc.offlineConsultation">🏥 In-Clinic</span>
+          </div>
+        </div>
+
+        <!-- Call to actions -->
+        <div class="flex items-center gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+          <button (click)="viewProfile(doc._id)"
+            class="flex-1 px-3 py-2 bg-white dark:bg-slate-855 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xxs font-extrabold uppercase tracking-wider rounded-xl transition duration-300 border border-slate-200 dark:border-slate-800 cursor-pointer shadow-xs">
+            View Profile
+          </button>
+
+          <button (click)="openBooking(doc)"
+            class="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xxs font-black uppercase tracking-widest rounded-xl transition duration-300 shadow-sm shadow-blue-500/10 cursor-pointer">
+            Book Appointment
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Booking Modal component -->
+  <app-booking-modal [doctor]="selectedDoctorForBooking()" [isOpen]="isBookingOpen()" (close)="isBookingOpen.set(false)"
+    (booked)="search()">
+  </app-booking-modal>
+
+</div>
+</div>

@@ -1,0 +1,1215 @@
+<div class="min-h-screen bg-fitness-theme transition-colors duration-300 p-4 sm:p-6 pb-20">
+  <div class="space-y-6 max-w-7xl mx-auto">
+
+  <!-- ════════════ HEADER SECTION ════════════ -->
+  <div
+    class="bg-gradient-to-r from-emerald-600 to-teal-500 rounded-3xl p-6 sm:p-8 text-white shadow-lg relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div class="z-10">
+      <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight flex items-center gap-2">
+        <span>🧘‍♀️</span> AI Fitness & Wellness
+      </h1>
+      <p class="text-emerald-50 text-sm mt-2 max-w-xl">
+        Achieve your holistic health goals. Plan workouts, practice yoga, track vitals, do breathing routines, and get
+        tailored AI wellness guidelines.
+      </p>
+    </div>
+    <div class="z-10 flex flex-wrap gap-2 text-xs">
+      <button (click)="switchTab('overview')" class="px-3.5 py-2 font-bold rounded-xl transition cursor-pointer"
+        [class.bg-white]="activeTab() === 'overview'" [class.text-teal-700]="activeTab() === 'overview'"
+        [class.text-emerald-50]="activeTab() !== 'overview'"
+        [class.bg-emerald-700/50]="activeTab() !== 'overview'">Overview</button>
+      <button (click)="switchTab('yoga')" class="px-3.5 py-2 font-bold rounded-xl transition cursor-pointer"
+        [class.bg-white]="activeTab() === 'yoga'" [class.text-teal-700]="activeTab() === 'yoga'"
+        [class.text-emerald-50]="activeTab() !== 'yoga'"
+        [class.bg-emerald-700/50]="activeTab() !== 'yoga'">Yoga</button>
+      <button (click)="switchTab('meditation')" class="px-3.5 py-2 font-bold rounded-xl transition cursor-pointer"
+        [class.bg-white]="activeTab() === 'meditation'" [class.text-teal-700]="activeTab() === 'meditation'"
+        [class.text-emerald-50]="activeTab() !== 'meditation'"
+        [class.bg-emerald-700/50]="activeTab() !== 'meditation'">Meditation</button>
+      <button (click)="switchTab('workout')" class="px-3.5 py-2 font-bold rounded-xl transition cursor-pointer"
+        [class.bg-white]="activeTab() === 'workout'" [class.text-teal-700]="activeTab() === 'workout'"
+        [class.text-emerald-50]="activeTab() !== 'workout'"
+        [class.bg-emerald-700/50]="activeTab() !== 'workout'">Workouts</button>
+      <button (click)="switchTab('ai-plan')"
+        class="px-3.5 py-2 font-bold rounded-xl bg-amber-400 hover:bg-amber-300 text-teal-900 border-none transition shadow cursor-pointer">✨
+        AI Plan</button>
+    </div>
+    <div class="absolute -right-10 -bottom-10 w-44 h-44 bg-white/10 rounded-full blur-2xl"></div>
+  </div>
+
+  <!-- ════════════ ACTIVE SESSION FLOATING BAR ════════════ -->
+  @if (activeSessionType()) {
+  <div
+    class="bg-indigo-900 border border-indigo-700 text-white rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl animate-bounce">
+    <div class="flex items-center gap-3">
+      <span class="text-3xl animate-spin">⏱️</span>
+      <div>
+        <h4 class="font-extrabold text-sm uppercase text-indigo-300 tracking-wider">Active Session In Progress</h4>
+        <p class="text-lg font-bold">{{ activeSessionName() }} ({{ activeSessionType() }})</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-4">
+      <div class="text-right">
+        <p class="text-xl font-mono font-black text-indigo-200">{{ formatTime(sessionDuration()) }}</p>
+        <p class="text-[10px] text-indigo-300 font-bold">~{{ approxCaloriesBurned() }} kcal burned</p>
+      </div>
+      <button (click)="finishSession()"
+        class="px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-extrabold rounded-xl text-xs transition shadow cursor-pointer">
+        Finish & Log
+      </button>
+    </div>
+  </div>
+  }
+
+  <!-- ════════════ FITBIT-STYLE STATISTICS CARDS GRID ════════════ -->
+  <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 sm:gap-4">
+    <!-- Daily Water -->
+    <div
+      class="bg-white p-3.5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between hover:shadow transition">
+      <span class="text-xl select-none">💧</span>
+      <div>
+        <p class="text-[10px] text-gray-400 font-bold uppercase mt-1.5">Water Log</p>
+        <h3 class="text-base sm:text-lg font-black text-gray-800">{{ stats()?.dailyActivity?.water || 0 }} ml</h3>
+      </div>
+    </div>
+
+    <!-- Calories Burned -->
+    <div
+      class="bg-white p-3.5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between hover:shadow transition">
+      <span class="text-xl select-none">🔥</span>
+      <div>
+        <p class="text-[10px] text-gray-400 font-bold uppercase mt-1.5">Kcal Burned</p>
+        <h3 class="text-base sm:text-lg font-black text-gray-800">{{ stats()?.caloriesBurned || 0 }} kcal</h3>
+      </div>
+    </div>
+
+    <!-- Workout Minutes -->
+    <div
+      class="bg-white p-3.5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between hover:shadow transition">
+      <span class="text-xl select-none">⏱️</span>
+      <div>
+        <p class="text-[10px] text-gray-400 font-bold uppercase mt-1.5">Workout Mins</p>
+        <h3 class="text-base sm:text-lg font-black text-gray-800">{{ stats()?.workoutMinutes || 0 }} min</h3>
+      </div>
+    </div>
+
+    <!-- Yoga Sessions -->
+    <div
+      class="bg-white p-3.5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between hover:shadow transition">
+      <span class="text-xl select-none">🧘‍♂️</span>
+      <div>
+        <p class="text-[10px] text-gray-400 font-bold uppercase mt-1.5">Yoga Runs</p>
+        <h3 class="text-base sm:text-lg font-black text-gray-800">{{ stats()?.yogaSessions || 0 }} poses</h3>
+      </div>
+    </div>
+
+    <!-- Meditation Time -->
+    <div
+      class="bg-white p-3.5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between hover:shadow transition">
+      <span class="text-xl select-none">🌌</span>
+      <div>
+        <p class="text-[10px] text-gray-400 font-bold uppercase mt-1.5">Zen Time</p>
+        <h3 class="text-base sm:text-lg font-black text-gray-800">{{ stats()?.meditationTime || 0 }} min</h3>
+      </div>
+    </div>
+
+    <!-- Running Distance -->
+    <div
+      class="bg-white p-3.5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between hover:shadow transition">
+      <span class="text-xl select-none">🏃</span>
+      <div>
+        <p class="text-[10px] text-gray-400 font-bold uppercase mt-1.5">Run Dist</p>
+        <h3 class="text-base sm:text-lg font-black text-gray-800">{{ stats()?.runningDistance || 0 }} km</h3>
+      </div>
+    </div>
+
+    <!-- Cycling Distance -->
+    <div
+      class="bg-white p-3.5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between hover:shadow transition">
+      <span class="text-xl select-none">🚴</span>
+      <div>
+        <p class="text-[10px] text-gray-400 font-bold uppercase mt-1.5">Cycle Dist</p>
+        <h3 class="text-base sm:text-lg font-black text-gray-800">{{ stats()?.cyclingDistance || 0 }} km</h3>
+      </div>
+    </div>
+
+    <!-- Streaks multiplier -->
+    <div
+      class="bg-amber-50 border border-amber-100 p-3.5 rounded-2xl shadow-sm flex flex-col justify-between hover:shadow transition">
+      <span class="text-xl select-none">🔥</span>
+      <div>
+        <p class="text-[10px] text-amber-500 font-black uppercase mt-1.5">Active Streak</p>
+        <h3 class="text-base sm:text-lg font-black text-amber-800">{{ stats()?.workoutStreak || 0 }} Days</h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ SUBTABS NAV PILLS ════════════ -->
+  <div class="flex items-center gap-1.5 border-b border-gray-100 overflow-x-auto pb-2 no-scrollbar text-xs sm:text-sm">
+    <button (click)="switchTab('overview')" class="px-4 py-2 border-b-2 font-bold cursor-pointer transition-colors"
+      [class.border-teal-600]="activeTab() === 'overview'" [class.text-teal-700]="activeTab() === 'overview'"
+      [class.border-transparent]="activeTab() !== 'overview'" [class.text-gray-500]="activeTab() !== 'overview'">
+      Overview
+    </button>
+    <button (click)="switchTab('yoga')" class="px-4 py-2 border-b-2 font-bold cursor-pointer transition-colors"
+      [class.border-teal-600]="activeTab() === 'yoga'" [class.text-teal-700]="activeTab() === 'yoga'"
+      [class.border-transparent]="activeTab() !== 'yoga'" [class.text-gray-500]="activeTab() !== 'yoga'">
+      Yoga Poses
+    </button>
+    <button (click)="switchTab('meditation')" class="px-4 py-2 border-b-2 font-bold cursor-pointer transition-colors"
+      [class.border-teal-600]="activeTab() === 'meditation'" [class.text-teal-700]="activeTab() === 'meditation'"
+      [class.border-transparent]="activeTab() !== 'meditation'" [class.text-gray-500]="activeTab() !== 'meditation'">
+      Meditation
+    </button>
+    <button (click)="switchTab('workout')" class="px-4 py-2 border-b-2 font-bold cursor-pointer transition-colors"
+      [class.border-teal-600]="activeTab() === 'workout'" [class.text-teal-700]="activeTab() === 'workout'"
+      [class.border-transparent]="activeTab() !== 'workout'" [class.text-gray-500]="activeTab() !== 'workout'">
+      Workouts & Stretching
+    </button>
+    <button (click)="switchTab('challenges')" class="px-4 py-2 border-b-2 font-bold cursor-pointer transition-colors"
+      [class.border-teal-600]="activeTab() === 'challenges'" [class.text-teal-700]="activeTab() === 'challenges'"
+      [class.border-transparent]="activeTab() !== 'challenges'" [class.text-gray-500]="activeTab() !== 'challenges'">
+      Breathing & Tracker
+    </button>
+    <button (click)="switchTab('history')" class="px-4 py-2 border-b-2 font-bold cursor-pointer transition-colors"
+      [class.border-teal-600]="activeTab() === 'history'" [class.text-teal-700]="activeTab() === 'history'"
+      [class.border-transparent]="activeTab() !== 'history'" [class.text-gray-500]="activeTab() !== 'history'">
+      Activity Logs
+    </button>
+    <button (click)="switchTab('reminders')" class="px-4 py-2 border-b-2 font-bold cursor-pointer transition-colors"
+      [class.border-teal-600]="activeTab() === 'reminders'" [class.text-teal-700]="activeTab() === 'reminders'"
+      [class.border-transparent]="activeTab() !== 'reminders'" [class.text-gray-500]="activeTab() !== 'reminders'">
+      Schedules & Reminders
+    </button>
+  </div>
+
+  <!-- ════════════ TAB PANEL: OVERVIEW ════════════ -->
+  @if (activeTab() === 'overview') {
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Left side: Water / Quick Tracker & Daily Challenges -->
+    <div class="lg:col-span-2 space-y-6">
+
+      <!-- Water counter box -->
+      <div
+        class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div class="flex items-center gap-4">
+          <div
+            class="w-16 h-16 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center text-3xl font-bold flex-shrink-0 select-none">
+            💧
+          </div>
+          <div>
+            <h3 class="font-extrabold text-gray-900 text-lg">Hydration Tracker</h3>
+            <p class="text-xs text-gray-400 mt-0.5">Stay hydrated by drinking at least 3 Litres of water daily.</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <button (click)="incrementWaterLog(250)"
+            class="px-4 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-xl text-xs transition-colors cursor-pointer border border-blue-100">+250
+            ml</button>
+          <button (click)="incrementWaterLog(500)"
+            class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition shadow cursor-pointer">+500
+            ml</button>
+        </div>
+      </div>
+
+      <!-- Badges showcase -->
+      <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
+        <h3 class="font-extrabold text-gray-900 text-base flex items-center gap-2">
+          <span>🏆</span> Earned Badges & Achievements
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          @for (badge of achievements(); track badge) {
+          <div
+            class="bg-amber-50/50 border border-amber-200 rounded-2xl p-4 flex gap-3.5 items-center hover:scale-[1.01] transition-transform">
+            <span class="text-3xl select-none">{{ badgeDetails[badge]?.icon || '🏅' }}</span>
+            <div>
+              <h4 class="font-bold text-amber-900 text-xs sm:text-sm">{{ badgeDetails[badge]?.title || badge }}</h4>
+              <p class="text-[10px] text-amber-700/80 mt-0.5">{{ badgeDetails[badge]?.desc || 'Goal achieved' }}</p>
+            </div>
+          </div>
+          } @empty {
+          <div class="bg-gray-50 border border-gray-100 rounded-2xl p-6 text-center col-span-3">
+            <p class="text-xs text-gray-400">Log workout, run, or yoga to unlock your first badge!</p>
+          </div>
+          }
+        </div>
+      </div>
+
+      <!-- Quick stretchings card -->
+      <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
+        <h3 class="font-extrabold text-gray-900 text-base flex items-center gap-2 border-b border-gray-50 pb-2">
+          <span>🤸‍♂️</span> Quick Desk Stretching Guides
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          @for (st of stretchingList; track st.name) {
+          <div
+            class="bg-gray-50 border border-gray-100 p-4 rounded-2xl space-y-2 relative group hover:border-emerald-200 hover:bg-emerald-50/20 transition-all duration-300">
+            <h4 class="font-bold text-gray-800 text-sm">{{ st.name }}</h4>
+            <p class="text-xs text-gray-400 font-bold uppercase">{{ st.category }} — {{ st.duration }}</p>
+            <p class="text-xs text-gray-500 mt-1 leading-relaxed">{{ st.instructions }}</p>
+            <button (click)="startSession('workout', st.name)"
+              class="mt-3 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-[10px] transition cursor-pointer">
+              Start Stretch
+            </button>
+          </div>
+          }
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right side: Streak overview and Quick Log shortcuts -->
+    <div class="space-y-6">
+      <!-- Streak indicators -->
+      <div class="bg-gradient-to-br from-indigo-900 to-indigo-800 text-white rounded-3xl p-6 shadow-md space-y-5">
+        <h4 class="font-black text-indigo-200 text-xs uppercase tracking-wider">Consistency Streaks</h4>
+        <div class="space-y-4">
+          <div>
+            <div class="flex justify-between text-xs font-bold mb-1">
+              <span>🧘‍♀️ Yoga Streak</span>
+              <span class="text-indigo-300 font-extrabold">{{ stats()?.yogaStreak || 0 }} Days</span>
+            </div>
+            <div class="w-full bg-indigo-950 rounded-full h-2 overflow-hidden">
+              <div class="bg-indigo-400 h-full rounded-full"
+                [style.width.%]="Math.min(100, (stats()?.yogaStreak || 0) * 10)"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs font-bold mb-1">
+              <span>🌌 Meditation Streak</span>
+              <span class="text-indigo-300 font-extrabold">{{ stats()?.meditationStreak || 0 }} Days</span>
+            </div>
+            <div class="w-full bg-indigo-950 rounded-full h-2 overflow-hidden">
+              <div class="bg-indigo-400 h-full rounded-full"
+                [style.width.%]="Math.min(100, (stats()?.meditationStreak || 0) * 10)"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bookmarks list preview -->
+      <div class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-3">
+        <h4 class="font-extrabold text-gray-800 text-sm border-b border-gray-100 pb-2">
+          ⭐ Bookmarked Sessions
+        </h4>
+        <div class="space-y-2">
+          @for (bk of bookmarks(); track bk._id) {
+          <div class="flex items-center justify-between p-2.5 bg-gray-50 rounded-2xl hover:bg-gray-100/50 transition">
+            <div class="min-w-0">
+              <h5 class="text-xs font-bold text-gray-800 truncate">{{ bk.title }}</h5>
+              <p class="text-[10px] text-gray-400 font-bold uppercase">{{ bk.itemType }} — {{ bk.category }}</p>
+            </div>
+            <button (click)="startSession(bk.itemType, bk.title)"
+              class="px-2.5 py-1.5 bg-teal-600 hover:bg-teal-500 text-white text-[10px] font-bold rounded-lg transition-colors cursor-pointer">
+              Start
+            </button>
+          </div>
+          } @empty {
+          <p class="text-[11px] text-gray-400 text-center py-2">No bookmarks saved yet.</p>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- ════════════ TAB PANEL: YOGA ════════════ -->
+  @if (activeTab() === 'yoga') {
+  <div class="space-y-6">
+
+    <!-- Category selector panel -->
+    <div
+      class="flex flex-wrap gap-1.5 bg-gray-50 border border-gray-200/50 p-2.5 rounded-3xl overflow-x-auto no-scrollbar">
+      @for (cat of yogaCategories; track cat) {
+      <button (click)="selectYogaCategory(cat)"
+        class="px-3.5 py-1.5 rounded-2xl font-bold text-xs transition cursor-pointer"
+        [class.bg-teal-600]="selectedYogaCat() === cat" [class.text-white]="selectedYogaCat() === cat"
+        [class.text-gray-600]="selectedYogaCat() !== cat" [class.hover:bg-gray-100]="selectedYogaCat() !== cat">
+        {{ cat }}
+      </button>
+      }
+    </div>
+
+    <!-- Yoga items grid -->
+    @if (isLibraryLoading()) {
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      @for (n of [1,2,3,4]; track n) {
+      <div class="bg-white rounded-3xl border border-gray-100 p-5 animate-pulse space-y-4">
+        <div class="h-32 bg-gray-200 rounded-2xl"></div>
+        <div class="h-4 bg-gray-200 rounded w-2/3"></div>
+        <div class="h-3 bg-gray-100 rounded w-1/2"></div>
+      </div>
+      }
+    </div>
+    } @else {
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      @for (pose of yogaSessions(); track pose._id) {
+      <div
+        class="bg-white border border-gray-100 rounded-3xl p-4 shadow-sm hover:shadow-md transition flex flex-col justify-between group overflow-hidden">
+        <div>
+          <!-- Pose image -->
+          <div class="w-full h-32 bg-teal-50 rounded-2xl overflow-hidden relative mb-4">
+            <img [src]="pose.image" alt="Yoga pose"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+            <span
+              class="absolute top-2 left-2 px-2 py-0.5 bg-teal-600 text-white font-bold text-[9px] rounded-md uppercase">
+              {{ pose.difficulty }}
+            </span>
+          </div>
+
+          <h4
+            class="font-extrabold text-gray-900 text-sm sm:text-base truncate group-hover:text-teal-700 transition-colors">
+            {{ pose.yogaName }}
+          </h4>
+          <p class="text-xs text-gray-400 font-semibold mt-0.5">⏱️ {{ pose.duration }} mins — {{ pose.calories }} kcal
+          </p>
+
+          <!-- Benefits -->
+          <div class="flex flex-wrap gap-1 mt-2.5">
+            @for (bf of pose.benefits; track bf) {
+            <span
+              class="text-[9px] bg-teal-50 text-teal-800 px-2 py-0.5 rounded-full font-bold border border-teal-100/50">
+              {{ bf }}
+            </span>
+            }
+          </div>
+
+          <!-- Equipments -->
+          @if (pose.equipment?.length) {
+          <p class="text-[10px] text-gray-500 mt-3 truncate">
+            <span class="font-bold text-gray-700">Equip:</span> {{ pose.equipment.join(', ') }}
+          </p>
+          }
+        </div>
+
+        <!-- Footer action items -->
+        <div class="flex items-center justify-between border-t border-gray-50 pt-3.5 mt-4">
+          <button (click)="playVideo(pose.videoUrl)"
+            class="text-[10px] text-teal-600 hover:text-teal-800 font-black cursor-pointer">
+            ▶ Watch Video
+          </button>
+          <div class="flex items-center gap-1.5">
+            <button (click)="toggleBookmark(pose, 'yoga')"
+              class="w-8 h-8 rounded-lg flex items-center justify-center border transition border-gray-200 text-gray-400 hover:text-rose-500 hover:bg-rose-50 cursor-pointer"
+              [class.border-rose-200]="isBookmarked(pose._id)" [class.text-rose-500]="isBookmarked(pose._id)"
+              [class.bg-rose-50]="isBookmarked(pose._id)">
+              ★
+            </button>
+            <button (click)="startSession('yoga', pose.yogaName)"
+              class="px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-[10px] rounded-lg transition-colors cursor-pointer">
+              Start Session
+            </button>
+          </div>
+        </div>
+      </div>
+      } @empty {
+      <div class="col-span-4 bg-white border border-gray-100 rounded-3xl p-10 text-center space-y-2">
+        <span class="text-4xl select-none">🧘‍♂️</span>
+        <h4 class="font-bold text-gray-700">No poses loaded in this category.</h4>
+      </div>
+      }
+    </div>
+    }
+
+  </div>
+  }
+
+  <!-- ════════════ TAB PANEL: MEDITATION ════════════ -->
+  @if (activeTab() === 'meditation') {
+  <div class="space-y-6">
+
+    <!-- Category selector panel -->
+    <div
+      class="flex flex-wrap gap-1.5 bg-gray-50 border border-gray-200/50 p-2.5 rounded-3xl overflow-x-auto no-scrollbar">
+      @for (cat of meditationCategories; track cat) {
+      <button (click)="selectMeditationCategory(cat)"
+        class="px-3.5 py-1.5 rounded-2xl font-bold text-xs transition cursor-pointer"
+        [class.bg-emerald-700]="selectedMeditationCat() === cat" [class.text-white]="selectedMeditationCat() === cat"
+        [class.text-gray-600]="selectedMeditationCat() !== cat"
+        [class.hover:bg-gray-100]="selectedMeditationCat() !== cat">
+        {{ cat }}
+      </button>
+      }
+    </div>
+
+    <!-- Meditation list -->
+    @if (isLibraryLoading()) {
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      @for (n of [1,2,3]; track n) {
+      <div class="bg-white rounded-3xl border border-gray-100 p-5 animate-pulse h-32"></div>
+      }
+    </div>
+    } @else {
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      @for (med of meditationSessions(); track med._id) {
+      <div
+        class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between space-y-4">
+        <div>
+          <div class="flex items-start justify-between gap-3">
+            <div
+              class="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center font-bold text-xl flex-shrink-0 select-none">
+              🌌
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="font-extrabold text-gray-800 text-sm sm:text-base truncate">{{ med.title }}</h4>
+              <p class="text-[10px] text-gray-400 font-bold uppercase mt-0.5">⏱️ {{ med.duration }} mins — {{
+                med.difficulty }}</p>
+            </div>
+          </div>
+
+          <!-- Benefits -->
+          <div class="flex flex-wrap gap-1 mt-3">
+            @for (bf of med.benefits; track bf) {
+            <span class="text-[9px] bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-full font-bold">
+              {{ bf }}
+            </span>
+            }
+          </div>
+        </div>
+
+        <!-- Footer action items -->
+        <div class="flex items-center justify-between border-t border-gray-50 pt-3 mt-2">
+          <button (click)="playVideo(med.videoUrl || '6p_yaNFSYao')"
+            class="text-[10px] text-emerald-600 hover:text-emerald-800 font-black cursor-pointer">
+            ▶ Video Guide
+          </button>
+          <div class="flex items-center gap-1.5">
+            <button (click)="toggleBookmark(med, 'meditation')"
+              class="w-8 h-8 rounded-lg flex items-center justify-center border transition border-gray-200 text-gray-400 hover:text-rose-500 hover:bg-rose-50 cursor-pointer"
+              [class.border-rose-200]="isBookmarked(med._id)" [class.text-rose-500]="isBookmarked(med._id)"
+              [class.bg-rose-50]="isBookmarked(med._id)">
+              ★
+            </button>
+            <button (click)="startSession('meditation', med.title)"
+              class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-[10px] rounded-lg transition-colors cursor-pointer">
+              Play Session
+            </button>
+          </div>
+        </div>
+      </div>
+      } @empty {
+      <div class="col-span-3 bg-white border border-gray-100 rounded-3xl p-10 text-center space-y-2">
+        <span class="text-4xl select-none">🌌</span>
+        <h4 class="font-bold text-gray-700">No meditation guides in this category.</h4>
+      </div>
+      }
+    </div>
+    }
+
+  </div>
+  }
+
+  <!-- ════════════ TAB PANEL: WORKOUTS & STRETCHING ════════════ -->
+  @if (activeTab() === 'workout') {
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- List of workouts exercises -->
+    <div class="lg:col-span-2 space-y-6">
+
+      <!-- Pre-defined exercises library list -->
+      <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
+        <h3 class="font-extrabold text-gray-900 text-base flex items-center gap-2 border-b border-gray-50 pb-2">
+          <span>🏋️‍♂️</span> Home Exercises & Cardio Plans
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          @for (ex of exercisesList; track ex.name) {
+          <div
+            class="bg-gray-50 border border-gray-100 rounded-3xl p-4 shadow-sm flex flex-col justify-between hover:border-blue-200 transition">
+            <div>
+              <div class="w-full h-24 bg-gray-200 rounded-2xl overflow-hidden mb-3 relative">
+                <img [src]="ex.gif" alt="workout" class="w-full h-full object-cover" />
+                <span
+                  class="absolute top-2 left-2 px-2 py-0.5 bg-indigo-600 text-white text-[9px] font-bold rounded uppercase">
+                  {{ ex.difficulty }}
+                </span>
+              </div>
+              <h4 class="font-black text-gray-800 text-sm sm:text-base">{{ ex.name }}</h4>
+              <p class="text-xs text-gray-400 font-semibold mt-0.5">⏱️ {{ ex.duration }} — ~{{ ex.calories }} kcal/min
+              </p>
+
+              <!-- Target Muscles -->
+              <div class="flex flex-wrap gap-1 mt-2">
+                @for (mus of ex.targetMuscles; track mus) {
+                <span
+                  class="text-[9px] bg-indigo-50 text-indigo-800 px-2 py-0.5 rounded font-bold border border-indigo-100">
+                  {{ mus }}
+                </span>
+                }
+              </div>
+
+              <!-- Instructions list dropdown -->
+              <ul class="list-disc pl-4 text-[10px] text-gray-500 mt-3 space-y-1">
+                @for (ins of ex.instructions; track ins) {
+                <li>{{ ins }}</li>
+                }
+              </ul>
+            </div>
+
+            <div class="flex items-center justify-between mt-4 border-t border-gray-100 pt-3">
+              <span class="text-[10px] text-gray-400 font-bold uppercase">{{ ex.category }}</span>
+              <div class="flex gap-1.5">
+                <button
+                  (click)="toggleBookmark({ _id: ex.name, name: ex.name, category: ex.category, duration: 1 }, 'workout')"
+                  class="w-8 h-8 rounded-lg flex items-center justify-center border transition border-gray-200 text-gray-400 hover:text-rose-500 hover:bg-rose-50 cursor-pointer"
+                  [class.border-rose-200]="isBookmarked(ex.name)" [class.text-rose-500]="isBookmarked(ex.name)"
+                  [class.bg-rose-50]="isBookmarked(ex.name)">
+                  ★
+                </button>
+                <button (click)="startSession('workout', ex.name)"
+                  class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-[10px] rounded-lg transition-colors cursor-pointer">
+                  Start Exercise
+                </button>
+              </div>
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Quick manual running log sidebar -->
+    <div class="space-y-6">
+      <!-- Log Run -->
+      <div class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-4">
+        <h4 class="font-extrabold text-gray-800 text-sm border-b border-gray-100 pb-2">
+          🏃 Log Outdoor Run / Walking
+        </h4>
+        <div class="space-y-3.5 text-xs">
+          <div>
+            <label for="runDist" class="block font-bold text-gray-600 uppercase mb-1">Distance (KM)</label>
+            <input id="runDist" type="number" [(ngModel)]="runDistance" placeholder="e.g. 5.0"
+              class="w-full p-2 border border-gray-200 rounded-xl bg-white focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+          </div>
+          <div>
+            <label for="runDur" class="block font-bold text-gray-600 uppercase mb-1">Duration (Minutes)</label>
+            <input id="runDur" type="number" [(ngModel)]="runDuration" placeholder="e.g. 30"
+              class="w-full p-2 border border-gray-200 rounded-xl bg-white focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+          </div>
+          <div>
+            <label for="runPlan" class="block font-bold text-gray-600 uppercase mb-1">Running Plan</label>
+            <select id="runPlan" [(ngModel)]="runPlanName"
+              class="w-full p-2 border border-gray-200 rounded-xl bg-white focus:ring-1 focus:ring-teal-500 focus:outline-none">
+              <option value="Free Run">Free Run</option>
+              <option value="Beginner Running Plan">Beginner Plan</option>
+              <option value="5K Plan">5K Plan</option>
+              <option value="10K Plan">10K Plan</option>
+              <option value="Daily Running Challenge">Daily Running Challenge</option>
+            </select>
+          </div>
+          <button (click)="submitRunningLog()" [disabled]="isLoggingRun()"
+            class="w-full py-2.5 bg-teal-600 hover:bg-teal-500 text-white font-extrabold rounded-xl transition cursor-pointer">
+            {{ isLoggingRun() ? 'Logging run...' : 'Log Outdoor Run' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Log Cycling -->
+      <div class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-4">
+        <h4 class="font-extrabold text-gray-800 text-sm border-b border-gray-100 pb-2">
+          🚴 Log Cycling Ride
+        </h4>
+        <div class="space-y-3.5 text-xs">
+          <div>
+            <label for="cyDist" class="block font-bold text-gray-600 uppercase mb-1">Distance (KM)</label>
+            <input id="cyDist" type="number" [(ngModel)]="cycleDistance" placeholder="e.g. 10.0"
+              class="w-full p-2 border border-gray-200 rounded-xl bg-white focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+          </div>
+          <div>
+            <label for="cyDur" class="block font-bold text-gray-600 uppercase mb-1">Duration (Minutes)</label>
+            <input id="cyDur" type="number" [(ngModel)]="cycleDuration" placeholder="e.g. 45"
+              class="w-full p-2 border border-gray-200 rounded-xl bg-white focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block font-bold text-gray-600 uppercase mb-1">Cycling Type</label>
+            <div class="flex gap-2">
+              <button (click)="cycleType = 'Outdoor'" type="button"
+                class="flex-1 py-2 border rounded-xl font-bold cursor-pointer transition-colors"
+                [class.bg-teal-50]="cycleType === 'Outdoor'" [class.border-teal-300]="cycleType === 'Outdoor'"
+                [class.text-teal-700]="cycleType === 'Outdoor'">Outdoor</button>
+              <button (click)="cycleType = 'Indoor'" type="button"
+                class="flex-1 py-2 border rounded-xl font-bold cursor-pointer transition-colors"
+                [class.bg-teal-50]="cycleType === 'Indoor'" [class.border-teal-300]="cycleType === 'Indoor'"
+                [class.text-teal-700]="cycleType === 'Indoor'">Indoor</button>
+            </div>
+          </div>
+          <button (click)="submitCyclingLog()" [disabled]="isLoggingCycle()"
+            class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold rounded-xl transition cursor-pointer">
+            {{ isLoggingCycle() ? 'Logging ride...' : 'Log Cycling Ride' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  }
+
+  <!-- ════════════ TAB PANEL: BREATHING & TRACKER ════════════ -->
+  @if (activeTab() === 'challenges') {
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Left side: Interactive breathing and checklist -->
+    <div class="lg:col-span-2 space-y-6">
+
+      <!-- Visual breathing rhythm guide bubble -->
+      <div
+        class="bg-gradient-to-br from-indigo-900 via-indigo-950 to-emerald-950 rounded-3xl p-6 sm:p-8 text-white shadow-lg space-y-6 relative overflow-hidden">
+        <div class="z-10 flex flex-wrap gap-2 text-xs">
+          <button (click)="startBreathing('box')" class="px-3.5 py-1.5 font-bold rounded-full transition cursor-pointer"
+            [class.bg-white]="selectedBreathingPattern() === 'box' && breathingActive()"
+            [class.text-indigo-900]="selectedBreathingPattern() === 'box' && breathingActive()"
+            [class.bg-white/10]="!(selectedBreathingPattern() === 'box' && breathingActive())">Box Breathing</button>
+          <button (click)="startBreathing('478')" class="px-3.5 py-1.5 font-bold rounded-full transition cursor-pointer"
+            [class.bg-white]="selectedBreathingPattern() === '478' && breathingActive()"
+            [class.text-indigo-900]="selectedBreathingPattern() === '478' && breathingActive()"
+            [class.bg-white/10]="!(selectedBreathingPattern() === '478' && breathingActive())">4-7-8 Breathing</button>
+          <button (click)="startBreathing('deep')"
+            class="px-3.5 py-1.5 font-bold rounded-full transition cursor-pointer"
+            [class.bg-white]="selectedBreathingPattern() === 'deep' && breathingActive()"
+            [class.text-indigo-900]="selectedBreathingPattern() === 'deep' && breathingActive()"
+            [class.bg-white/10]="!(selectedBreathingPattern() === 'deep' && breathingActive())">Deep Breathing</button>
+        </div>
+
+        <!-- Bubble animator -->
+        <div class="flex flex-col items-center justify-center py-10 space-y-4">
+          <!-- Animated Breathing Circle -->
+          <div
+            class="w-36 h-36 sm:w-44 sm:h-44 rounded-full border border-teal-400 flex flex-col items-center justify-center transition-all duration-1000 shadow-[0_0_40px_rgba(45,212,191,0.2)] bg-teal-500/10"
+            [class.scale-125]="breathingPhase() === 'Inhale'" [class.scale-110]="breathingPhase() === 'Hold'"
+            [class.scale-95]="breathingPhase() === 'Exhale'" [class.scale-90]="breathingPhase() === 'Hold (Empty)'">
+            <h2 class="text-xl sm:text-2xl font-black text-teal-300 tracking-wide uppercase select-none animate-pulse">
+              {{ breathingPhase() }}
+            </h2>
+            <span class="text-3xl sm:text-4xl font-mono font-black mt-2 text-white">
+              {{ breathingTimerValue() }}s
+            </span>
+          </div>
+
+          <div class="text-center max-w-sm mt-3">
+            <p class="text-xs text-gray-300">
+              @if (selectedBreathingPattern() === 'box') {
+              Box Breathing: Equal periods of Inhaling, Holding, Exhaling, and Resting. (4s each)
+              } @else if (selectedBreathingPattern() === '478') {
+              4-7-8 Breathing: Calms the nervous system. Inhale (4s), Hold (7s), Exhale (8s).
+              } @else {
+              Deep Breathing: Simple diaphragmatic breathing. (5s inhale, 5s exhale)
+              }
+            </p>
+          </div>
+
+          <div class="pt-4 flex gap-2">
+            @if (!breathingActive()) {
+            <button (click)="startBreathing('box')"
+              class="px-6 py-2.5 bg-teal-500 hover:bg-teal-400 text-teal-950 font-extrabold rounded-xl text-xs transition cursor-pointer shadow">
+              Start Breathing
+            </button>
+            } @else {
+            <button (click)="stopBreathingTimer()"
+              class="px-6 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-extrabold rounded-xl text-xs transition cursor-pointer shadow">
+              Stop Exercises
+            </button>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Daily Checklist -->
+      <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
+        <h3 class="font-extrabold text-gray-900 text-base flex items-center gap-2 border-b border-gray-50 pb-2">
+          <span>📅</span> Daily Healthy Challenges Checklist
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <!-- Drink 3 Litres -->
+          <button (click)="toggleChallenge('water')"
+            class="w-full text-left p-3.5 rounded-2xl flex items-center justify-between border cursor-pointer transition-colors"
+            [class.bg-emerald-50]="isChallengeCompleted('water')"
+            [class.border-emerald-300]="isChallengeCompleted('water')" [class.bg-white]="!isChallengeCompleted('water')"
+            [class.border-gray-200]="!isChallengeCompleted('water')">
+            <div class="flex items-center gap-3">
+              <span class="text-xl">💧</span>
+              <span class="text-xs font-bold text-gray-700" [class.line-through]="isChallengeCompleted('water')">Drink 3
+                Litres Water</span>
+            </div>
+            <span class="text-xs font-bold" [class.text-emerald-600]="isChallengeCompleted('water')">{{
+              isChallengeCompleted('water') ? '✓ Done' : 'Todo' }}</span>
+          </button>
+
+          <!-- Walk Steps -->
+          <button (click)="toggleChallenge('steps')"
+            class="w-full text-left p-3.5 rounded-2xl flex items-center justify-between border cursor-pointer transition-colors"
+            [class.bg-emerald-50]="isChallengeCompleted('steps')"
+            [class.border-emerald-300]="isChallengeCompleted('steps')" [class.bg-white]="!isChallengeCompleted('steps')"
+            [class.border-gray-200]="!isChallengeCompleted('steps')">
+            <div class="flex items-center gap-3">
+              <span class="text-xl">👣</span>
+              <span class="text-xs font-bold text-gray-700" [class.line-through]="isChallengeCompleted('steps')">Walk
+                10,000 Steps</span>
+            </div>
+            <span class="text-xs font-bold" [class.text-emerald-600]="isChallengeCompleted('steps')">{{
+              isChallengeCompleted('steps') ? '✓ Done' : 'Todo' }}</span>
+          </button>
+
+          <!-- Meditate 15 Mins -->
+          <button (click)="toggleChallenge('meditate')"
+            class="w-full text-left p-3.5 rounded-2xl flex items-center justify-between border cursor-pointer transition-colors"
+            [class.bg-emerald-50]="isChallengeCompleted('meditate')"
+            [class.border-emerald-300]="isChallengeCompleted('meditate')"
+            [class.bg-white]="!isChallengeCompleted('meditate')"
+            [class.border-gray-200]="!isChallengeCompleted('meditate')">
+            <div class="flex items-center gap-3">
+              <span class="text-xl">🌌</span>
+              <span class="text-xs font-bold text-gray-700"
+                [class.line-through]="isChallengeCompleted('meditate')">Meditate 15 Minutes</span>
+            </div>
+            <span class="text-xs font-bold" [class.text-emerald-600]="isChallengeCompleted('meditate')">{{
+              isChallengeCompleted('meditate') ? '✓ Done' : 'Todo' }}</span>
+          </button>
+
+          <!-- Run 2 KM -->
+          <button (click)="toggleChallenge('run')"
+            class="w-full text-left p-3.5 rounded-2xl flex items-center justify-between border cursor-pointer transition-colors"
+            [class.bg-emerald-50]="isChallengeCompleted('run')" [class.border-emerald-300]="isChallengeCompleted('run')"
+            [class.bg-white]="!isChallengeCompleted('run')" [class.border-gray-200]="!isChallengeCompleted('run')">
+            <div class="flex items-center gap-3">
+              <span class="text-xl">🏃</span>
+              <span class="text-xs font-bold text-gray-700" [class.line-through]="isChallengeCompleted('run')">Run 2
+                KM</span>
+            </div>
+            <span class="text-xs font-bold" [class.text-emerald-600]="isChallengeCompleted('run')">{{
+              isChallengeCompleted('run') ? '✓ Done' : 'Todo' }}</span>
+          </button>
+
+          <!-- Cycle 5 KM -->
+          <button (click)="toggleChallenge('cycle')"
+            class="w-full text-left p-3.5 rounded-2xl flex items-center justify-between border cursor-pointer transition-colors"
+            [class.bg-emerald-50]="isChallengeCompleted('cycle')"
+            [class.border-emerald-300]="isChallengeCompleted('cycle')" [class.bg-white]="!isChallengeCompleted('cycle')"
+            [class.border-gray-200]="!isChallengeCompleted('cycle')">
+            <div class="flex items-center gap-3">
+              <span class="text-xl">🚴</span>
+              <span class="text-xs font-bold text-gray-700" [class.line-through]="isChallengeCompleted('cycle')">Cycle 5
+                KM</span>
+            </div>
+            <span class="text-xs font-bold" [class.text-emerald-600]="isChallengeCompleted('cycle')">{{
+              isChallengeCompleted('cycle') ? '✓ Done' : 'Todo' }}</span>
+          </button>
+
+          <!-- Sleep before 11 -->
+          <button (click)="toggleChallenge('sleep')"
+            class="w-full text-left p-3.5 rounded-2xl flex items-center justify-between border cursor-pointer transition-colors"
+            [class.bg-emerald-50]="isChallengeCompleted('sleep')"
+            [class.border-emerald-300]="isChallengeCompleted('sleep')" [class.bg-white]="!isChallengeCompleted('sleep')"
+            [class.border-gray-200]="!isChallengeCompleted('sleep')">
+            <div class="flex items-center gap-3">
+              <span class="text-xl">🌙</span>
+              <span class="text-xs font-bold text-gray-700" [class.line-through]="isChallengeCompleted('sleep')">Sleep
+                Before 11 PM</span>
+            </div>
+            <span class="text-xs font-bold" [class.text-emerald-600]="isChallengeCompleted('sleep')">{{
+              isChallengeCompleted('sleep') ? '✓ Done' : 'Todo' }}</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right side: Health Vitals Tracker form inputs -->
+    <div class="space-y-6">
+      <div class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-4">
+        <h4 class="font-extrabold text-gray-800 text-sm border-b border-gray-100 pb-2">
+          🩺 Track Vitals (Manual Log)
+        </h4>
+        <div class="space-y-3.5 text-xs">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label for="bpSys" class="block font-bold text-gray-600 uppercase mb-1">BP Sys (mmHg)</label>
+              <input id="bpSys" type="number" [(ngModel)]="bpSystolic"
+                class="w-full p-2 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-1 focus:ring-teal-500" />
+            </div>
+            <div>
+              <label for="bpDia" class="block font-bold text-gray-600 uppercase mb-1">BP Dia (mmHg)</label>
+              <input id="bpDia" type="number" [(ngModel)]="bpDiastolic"
+                class="w-full p-2 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-1 focus:ring-teal-500" />
+            </div>
+          </div>
+          <div>
+            <label for="blSugar" class="block font-bold text-gray-600 uppercase mb-1">Blood Sugar (mg/dL)</label>
+            <input id="blSugar" type="number" [(ngModel)]="bloodSugar"
+              class="w-full p-2 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-1 focus:ring-teal-500" />
+          </div>
+          <div>
+            <label for="hRate" class="block font-bold text-gray-600 uppercase mb-1">Heart Rate (bpm)</label>
+            <input id="hRate" type="number" [(ngModel)]="heartRate"
+              class="w-full p-2 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-1 focus:ring-teal-500" />
+          </div>
+          <div>
+            <label for="bWeight" class="block font-bold text-gray-600 uppercase mb-1">Body Weight (kg)</label>
+            <input id="bWeight" type="number" [(ngModel)]="bodyWeight"
+              class="w-full p-2 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-1 focus:ring-teal-500" />
+          </div>
+          <div>
+            <label for="sleepLog" class="block font-bold text-gray-600 uppercase mb-1">Sleep Hours</label>
+            <input id="sleepLog" type="number" [(ngModel)]="sleepDurationLog"
+              class="w-full p-2 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-1 focus:ring-teal-500" />
+          </div>
+          <button (click)="submitHealthLogs()" [disabled]="isLoggingHealth()"
+            class="w-full py-2.5 bg-teal-600 hover:bg-teal-500 text-white font-extrabold rounded-xl transition cursor-pointer">
+            {{ isLoggingHealth() ? 'Saving vitals...' : 'Save Parameters' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  }
+
+  <!-- ════════════ TAB PANEL: ACTIVITY LOGS HISTORY ════════════ -->
+  @if (activeTab() === 'history') {
+  <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-6">
+    <h3 class="font-extrabold text-gray-900 text-base flex items-center gap-2 border-b border-gray-50 pb-2">
+      <span>🕒</span> Historical Workout & Running Activities
+    </h3>
+
+    @if (isHistoryLoading()) {
+    <p class="text-xs text-gray-400">Loading history records...</p>
+    } @else {
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 text-xs">
+      <!-- Workouts/Yoga -->
+      <div class="space-y-3">
+        <h4 class="font-black text-gray-700 uppercase border-b pb-2">Yoga & Workouts</h4>
+        @for (w of history().workouts; track w._id) {
+        <div class="p-3 bg-gray-50 rounded-2xl space-y-1">
+          <div class="flex justify-between font-bold text-gray-800">
+            <span>{{ w.exerciseName || w.workoutType }}</span>
+            <span class="text-teal-600">{{ w.caloriesBurned }} kcal</span>
+          </div>
+          <p class="text-[10px] text-gray-400 font-semibold">{{ w.workoutType }} — {{ w.duration }} mins</p>
+          <p class="text-[9px] text-gray-400 font-semibold mt-1">{{ w.date | date:'mediumDate' }}</p>
+        </div>
+        } @empty {
+        <p class="text-gray-400 italic">No workouts logged yet.</p>
+        }
+      </div>
+
+      <!-- Runs -->
+      <div class="space-y-3">
+        <h4 class="font-black text-gray-700 uppercase border-b pb-2">Runs & Walks</h4>
+        @for (r of history().runs; track r._id) {
+        <div class="p-3 bg-gray-50 rounded-2xl space-y-1">
+          <div class="flex justify-between font-bold text-gray-800">
+            <span>{{ r.planName }}</span>
+            <span class="text-teal-600">{{ r.caloriesBurned }} kcal</span>
+          </div>
+          <p class="text-[10px] text-gray-400 font-semibold">{{ r.distance }} km — {{ r.duration }} mins ({{ r.speed }}
+            km/h)</p>
+          <p class="text-[9px] text-gray-400 font-semibold mt-1">{{ r.date | date:'mediumDate' }}</p>
+        </div>
+        } @empty {
+        <p class="text-gray-400 italic">No runs logged yet.</p>
+        }
+      </div>
+
+      <!-- Cycling -->
+      <div class="space-y-3">
+        <h4 class="font-black text-gray-700 uppercase border-b pb-2">Cycling Rides</h4>
+        @for (c of history().cycles; track c._id) {
+        <div class="p-3 bg-gray-50 rounded-2xl space-y-1">
+          <div class="flex justify-between font-bold text-gray-800">
+            <span>{{ c.cyclingType }} Cycle</span>
+            <span class="text-indigo-600">{{ c.caloriesBurned }} kcal</span>
+          </div>
+          <p class="text-[10px] text-gray-400 font-semibold">{{ c.distance }} km — {{ c.duration }} mins ({{ c.speed }}
+            km/h)</p>
+          <p class="text-[9px] text-gray-400 font-semibold mt-1">{{ c.date | date:'mediumDate' }}</p>
+        </div>
+        } @empty {
+        <p class="text-gray-400 italic">No cycling logs yet.</p>
+        }
+      </div>
+    </div>
+    }
+  </div>
+  }
+
+  <!-- ════════════ TAB PANEL: REMINDERS ════════════ -->
+  @if (activeTab() === 'reminders') {
+  <div class="max-w-2xl mx-auto bg-white border border-gray-100 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+    <div class="border-b border-gray-50 pb-3">
+      <h3 class="font-extrabold text-gray-900 text-lg">Daily Routine Reminders</h3>
+      <p class="text-xs text-gray-400 mt-0.5">Configure target time alerts to maintain consistency in your lifestyle.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+      <div>
+        <label for="remWork" class="block font-bold text-gray-600 uppercase mb-1">Workout Alert Time</label>
+        <input id="remWork" type="time" [(ngModel)]="reminders().workoutTime"
+          class="w-full p-2 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-1 focus:ring-teal-500" />
+      </div>
+      <div>
+        <label for="remYoga" class="block font-bold text-gray-600 uppercase mb-1">Yoga Alert Time</label>
+        <input id="remYoga" type="time" [(ngModel)]="reminders().yogaTime"
+          class="w-full p-2 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-1 focus:ring-teal-500" />
+      </div>
+      <div>
+        <label for="remMed" class="block font-bold text-gray-600 uppercase mb-1">Meditation Alert Time</label>
+        <input id="remMed" type="time" [(ngModel)]="reminders().meditationTime"
+          class="w-full p-2 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-1 focus:ring-teal-500" />
+      </div>
+      <div>
+        <label for="remWater" class="block font-bold text-gray-600 uppercase mb-1">Water Reminder Interval
+          (Mins)</label>
+        <input id="remWater" type="number" [(ngModel)]="reminders().waterInterval" placeholder="e.g. 120"
+          class="w-full p-2 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-1 focus:ring-teal-500" />
+      </div>
+      <div>
+        <label for="remSleep" class="block font-bold text-gray-600 uppercase mb-1">Bedtime Alert</label>
+        <input id="remSleep" type="time" [(ngModel)]="reminders().sleepTime"
+          class="w-full p-2 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-1 focus:ring-teal-500" />
+      </div>
+      <div>
+        <label for="remMedTime" class="block font-bold text-gray-600 uppercase mb-1">Medicine Routine Alert</label>
+        <input id="remMedTime" type="time" [(ngModel)]="reminders().medicineTime"
+          class="w-full p-2 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-1 focus:ring-teal-500" />
+      </div>
+    </div>
+
+    <button (click)="submitReminders()" [disabled]="isSavingReminders()"
+      class="w-full py-2.5 bg-teal-600 hover:bg-teal-500 text-white font-extrabold rounded-xl transition cursor-pointer text-xs">
+      {{ isSavingReminders() ? 'Saving Reminder schedules...' : 'Save Routine Schedules' }}
+    </button>
+  </div>
+  }
+
+  <!-- ════════════ TAB PANEL: AI WELLNESS PLANS ════════════ -->
+  @if (activeTab() === 'ai-plan') {
+  <div class="space-y-6">
+
+    <!-- Trigger banner -->
+    <div
+      class="bg-amber-50 border border-amber-200 rounded-3xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+      <div class="flex items-start gap-3">
+        <span class="text-3xl mt-1 select-none">✨</span>
+        <div>
+          <h3 class="font-extrabold text-amber-800 text-sm sm:text-base">Personalized Gemini AI Wellness Recipe</h3>
+          <p class="text-xs text-amber-700 leading-relaxed mt-0.5">
+            Based on your logged age, gender, latest symptoms, and BMI parameters, Gemini generates a custom schedule
+            including exercises, yoga posture focuses, water targets, and diet plans.
+          </p>
+        </div>
+      </div>
+      <button (click)="fetchAiWellnessPlan()" [disabled]="isAiLoading()"
+        class="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-amber-950 font-black rounded-xl text-xs transition cursor-pointer border-none shadow">
+        {{ isAiLoading() ? 'Analyzing Wellness Plan...' : 'Generate Plan' }}
+      </button>
+    </div>
+
+    <!-- Generated outputs -->
+    @if (aiPlan()) {
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- Exercises and Yoga columns -->
+      <div class="lg:col-span-2 space-y-6">
+
+        <!-- Workouts & Exercises -->
+        <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
+          <h4 class="font-extrabold text-gray-900 text-sm border-b pb-2 flex items-center gap-2">
+            🏃 Recommended Exercises
+          </h4>
+          <div class="space-y-3.5 text-xs">
+            @for (ex of aiPlan()?.dailyExercise; track ex.activity) {
+            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 space-y-1">
+              <div class="flex justify-between font-bold text-gray-800">
+                <span>{{ ex.activity }}</span>
+                <span class="text-teal-600">{{ ex.duration }}</span>
+              </div>
+              <p class="text-gray-400 font-semibold">Intensity: {{ ex.intensity }}</p>
+              <p class="text-gray-500 mt-1 leading-relaxed">{{ ex.benefits }}</p>
+            </div>
+            }
+          </div>
+        </div>
+
+        <!-- Yoga poses -->
+        <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
+          <h4 class="font-extrabold text-gray-900 text-sm border-b pb-2 flex items-center gap-2">
+            🧘‍♀️ Recommended Yoga Poses
+          </h4>
+          <div class="space-y-3.5 text-xs">
+            @for (y of aiPlan()?.yoga; track y.poseName) {
+            <div class="bg-teal-50/20 p-4 rounded-2xl border border-teal-100 space-y-1">
+              <div class="flex justify-between font-bold text-teal-800">
+                <span>{{ y.poseName }}</span>
+                <span>{{ y.duration }}</span>
+              </div>
+              <p class="text-teal-700 leading-relaxed mt-1">{{ y.benefits }}</p>
+            </div>
+            }
+          </div>
+        </div>
+
+        <!-- Diet recommendations -->
+        <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
+          <h4 class="font-extrabold text-gray-900 text-sm border-b pb-2 flex items-center gap-2">
+            🥗 Balanced Diet & Nutrition Plan
+          </h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div class="bg-amber-50/20 border border-amber-100 p-4 rounded-2xl space-y-1">
+              <h5 class="font-bold text-amber-800">Breakfast</h5>
+              <p class="text-gray-600 mt-0.5 leading-relaxed">{{ aiPlan()?.diet?.breakfast }}</p>
+            </div>
+            <div class="bg-amber-50/20 border border-amber-100 p-4 rounded-2xl space-y-1">
+              <h5 class="font-bold text-amber-800">Lunch</h5>
+              <p class="text-gray-600 mt-0.5 leading-relaxed">{{ aiPlan()?.diet?.lunch }}</p>
+            </div>
+            <div class="bg-amber-50/20 border border-amber-100 p-4 rounded-2xl space-y-1">
+              <h5 class="font-bold text-amber-800">Dinner</h5>
+              <p class="text-gray-600 mt-0.5 leading-relaxed">{{ aiPlan()?.diet?.dinner }}</p>
+            </div>
+            <div class="bg-amber-50/20 border border-amber-100 p-4 rounded-2xl space-y-1">
+              <h5 class="font-bold text-amber-800">Snacks</h5>
+              <p class="text-gray-600 mt-0.5 leading-relaxed">{{ aiPlan()?.diet?.snacks }}</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Sidebar targets and warnings -->
+      <div class="space-y-6">
+
+        <!-- Targets -->
+        <div class="bg-gradient-to-br from-teal-900 to-teal-800 text-white rounded-3xl p-5 shadow-sm space-y-4">
+          <h4 class="font-bold text-teal-200 text-sm border-b border-teal-700 pb-2">Daily Routine Targets</h4>
+          <div class="space-y-3.5 text-xs font-semibold">
+            <div class="flex justify-between">
+              <span>Water Target</span>
+              <span>{{ aiPlan()?.targets?.waterIntake }} Litres</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Sleep Duration</span>
+              <span>{{ aiPlan()?.targets?.sleepDuration }} Hours</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Running Target</span>
+              <span>{{ aiPlan()?.targets?.runningDistance }} KM</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Cycling Target</span>
+              <span>{{ aiPlan()?.targets?.cyclingDistance }} KM</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lifestyle tips -->
+        <div class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-3">
+          <h4 class="font-extrabold text-gray-800 text-sm border-b pb-2">Lifestyle Guidelines</h4>
+          <ul class="list-disc pl-5 text-xs text-gray-500 space-y-2 leading-relaxed">
+            @for (tip of aiPlan()?.lifestyleTips; track tip) {
+            <li>{{ tip }}</li>
+            }
+          </ul>
+        </div>
+
+      </div>
+
+    </div>
+    }
+
+  </div>
+  }
+
+  <!-- ════════════ EDUCATIONAL VIDEO LIBRARY SECTION (FEATURE 14) ════════════ -->
+  <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-6">
+
+    <div class="flex flex-col sm:flex-row items-center justify-between border-b border-gray-100 pb-4 gap-4">
+      <div>
+        <h3 class="font-extrabold text-gray-900 text-base sm:text-lg flex items-center gap-2">
+          <span>📺</span> Educational Video Library
+        </h3>
+        <p class="text-xs text-gray-400 mt-0.5">Search and watch high-quality medical and yoga instructions from trusted
+          authorities.</p>
+      </div>
+
+      <!-- Quick recommendation search pill filters -->
+      <div class="flex flex-wrap gap-1.5 text-xs">
+        <button (click)="triggerVideoSearch('Yoga for Back Pain')"
+          class="px-3 py-1 bg-gray-100 hover:bg-teal-50 hover:text-teal-700 border border-transparent rounded-full cursor-pointer font-bold transition">Back
+          Pain Yoga</button>
+        <button (click)="triggerVideoSearch('guided meditation for stress')"
+          class="px-3 py-1 bg-gray-100 hover:bg-teal-50 hover:text-teal-700 border border-transparent rounded-full cursor-pointer font-bold transition">Meditation</button>
+        <button (click)="triggerVideoSearch('correct running posture')"
+          class="px-3 py-1 bg-gray-100 hover:bg-teal-50 hover:text-teal-700 border border-transparent rounded-full cursor-pointer font-bold transition">Running
+          Posture</button>
+        <button (click)="triggerVideoSearch('safe home workouts')"
+          class="px-3 py-1 bg-gray-100 hover:bg-teal-50 hover:text-teal-700 border border-transparent rounded-full cursor-pointer font-bold transition">Safe
+          Workouts</button>
+      </div>
+    </div>
+
+    <!-- Search box -->
+    <div class="flex gap-2">
+      <input type="text" [(ngModel)]="videoSearchQuery"
+        placeholder="Search workout, yoga, meditation or breathing guides..."
+        class="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-teal-500 bg-white" />
+      <button (click)="loadVideos()" [disabled]="isVideosLoading()"
+        class="px-5 py-2.5 bg-teal-600 hover:bg-teal-500 text-white font-extrabold rounded-xl text-xs transition cursor-pointer">
+        {{ isVideosLoading() ? 'Searching...' : 'Search' }}
+      </button>
+    </div>
+
+    <!-- Video Grid -->
+    @if (isVideosLoading()) {
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      @for (n of [1,2,3]; track n) {
+      <div class="bg-gray-100 h-44 rounded-2xl animate-pulse"></div>
+      }
+    </div>
+    } @else {
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      @for (vid of foundVideos(); track vid.videoId) {
+      <div
+        class="bg-gray-50 border border-gray-200/40 rounded-3xl overflow-hidden hover:shadow transition flex flex-col justify-between">
+        <div class="relative w-full h-36 bg-gray-200 group">
+          <img [src]="vid.thumbnail" alt="video thumbnail" class="w-full h-full object-cover" />
+          <button (click)="playVideo(vid.videoId)"
+            class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer border-none">
+            <span class="text-white bg-teal-600 px-4 py-2.5 rounded-xl font-bold text-xs">Play Video</span>
+          </button>
+        </div>
+        <div class="p-4 text-xs space-y-1">
+          <h4 class="font-bold text-gray-800 line-clamp-2 leading-snug">{{ vid.title }}</h4>
+          <p class="text-gray-400 font-semibold">Channel: {{ vid.channel }}</p>
+        </div>
+      </div>
+      } @empty {
+      <p class="text-xs text-gray-400 italic text-center py-4 col-span-3">No educational videos found matching query.
+      </p>
+      }
+    </div>
+    }
+
+  </div>
+
+</div>
+</div>
+
+<!-- ════════════ VIDEO PLAY EMBED DIALOG MODAL ════════════ -->
+@if (activeVideoEmbedUrl()) {
+<div class="fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4 animate-fade-in">
+  <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-3xl overflow-hidden shadow-2xl relative">
+    <div class="flex justify-between items-center px-4 py-3 bg-gray-900 text-white">
+      <span class="text-xs font-bold uppercase tracking-wider text-teal-400">Educational Video Play</span>
+      <button (click)="closeVideo()"
+        class="text-white hover:text-red-400 font-black cursor-pointer bg-transparent border-none text-sm">✕
+        Close</button>
+    </div>
+    <div class="relative pb-[56.25%] h-0">
+      <iframe [src]="activeVideoEmbedUrl()!" frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen
+        class="absolute top-0 left-0 w-full h-full border-none"></iframe>
+    </div>
+  </div>
+</div>
+}
