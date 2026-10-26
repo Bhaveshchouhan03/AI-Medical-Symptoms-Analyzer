@@ -424,7 +424,7 @@ const acceptAppointment = async (req, res) => {
     }
 
     appointment.status = 'Accepted';
-    appointment.videoLink = `https://meet.jit.si/medcare-consult-${appointment._id}`;
+    appointment.videoLink = `https://meet.jit.si/aipowereddiagnosis-consult-${appointment._id}`;
     appointment.clinicAddress = '120 Broadway, New York, NY';
     appointment.hospitalName = 'Metro General Hospital';
     
