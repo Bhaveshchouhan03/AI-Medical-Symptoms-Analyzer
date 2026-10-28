@@ -65,7 +65,7 @@ export interface AiAnalysisPayload {
 @Injectable({ providedIn: 'root' })
 export class AiService {
   private readonly http    = inject(HttpClient);
-  private readonly apiUrl  = 'http://localhost:3000/api/ai';
+  private readonly apiUrl  = 'https://ai-medical-symptoms-analyzer.onrender.com';
 
   analyze(payload: AiAnalysisPayload): Observable<AiAnalysis> {
     return this.http.post<AiAnalysis>(`${this.apiUrl}/analyze`, payload);
