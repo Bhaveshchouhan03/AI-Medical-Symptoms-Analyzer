@@ -299,7 +299,7 @@ export class ChatAssistantComponent implements OnInit {
       return;
     }
 
-    const exportUrl = `http://localhost:3000/api/chat/export`;
+    const exportUrl = `https://ai-medical-symptoms-analyzer.onrender.com/api/chat/export`;
     this.toastService.show('Exporting text transcript...', 'info');
 
     // Call using window submit form or helper to trigger attachment download
@@ -316,7 +316,7 @@ export class ChatAssistantComponent implements OnInit {
     // Attach authorization token if interceptors are bypassed by form submits
     // Actually, our API verifyToken expects JWT header, so form submit will fail without auth.
     // Let's do it using HttpClient blob request! That is cleaner and attaches the JWT automatically via Angular HTTP interceptor!
-    this.http.post('http://localhost:3000/api/chat/export', { sessionId: id }, { responseType: 'blob' }).subscribe({
+    this.http.post('https://ai-medical-symptoms-analyzer.onrender.com/api/chat/export', { sessionId: id }, { responseType: 'blob' }).subscribe({
       next: (blob) => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');

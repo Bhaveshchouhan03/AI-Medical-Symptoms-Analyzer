@@ -34,7 +34,7 @@ export interface SymptomFormResponse {
 @Injectable({ providedIn: 'root' })
 export class PatientService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:3000/api/patient';
+  private readonly apiUrl = 'https://ai-medical-symptoms-analyzer.onrender.com/api/patient';
 
   submitSymptomForm(payload: SymptomFormPayload): Observable<SymptomFormResponse> {
     return this.http.post<SymptomFormResponse>(`${this.apiUrl}/submit`, payload);

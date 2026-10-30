@@ -31,7 +31,7 @@ export interface FaceHealthScan {
 @Injectable({ providedIn: 'root' })
 export class FaceAnalyzerService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:3000/api/face';
+  private readonly apiUrl = 'https://ai-medical-symptoms-analyzer.onrender.com/api/face';
 
   analyzeFace(image: string, saveImage = false): Observable<{ status: string; data: FaceHealthScan }> {
     return this.http.post<{ status: string; data: FaceHealthScan }>(`${this.apiUrl}/analyze`, { image, saveImage });

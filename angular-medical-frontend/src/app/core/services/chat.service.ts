@@ -60,7 +60,7 @@ export interface ChatSession {
 @Injectable({ providedIn: 'root' })
 export class ChatService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:3000/api/chat';
+  private readonly apiUrl = 'https://ai-medical-symptoms-analyzer.onrender.com/api/chat';
   readonly chatOpen = signal<boolean>(false);
 
   // Web Speech API references

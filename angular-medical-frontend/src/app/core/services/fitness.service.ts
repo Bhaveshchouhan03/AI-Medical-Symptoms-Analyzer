@@ -100,7 +100,7 @@ export interface CyclingHistoryRecord {
 @Injectable({ providedIn: 'root' })
 export class FitnessService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:3000/api/fitness';
+  private readonly apiUrl = 'https://ai-medical-symptoms-analyzer.onrender.com/api/fitness';
 
   getYogaSessions(category?: string): Observable<{ count: number; data: YogaSession[] }> {
     const params: Record<string, string> = {};
@@ -231,6 +231,6 @@ export class FitnessService {
   }
 
   searchVideos(query: string): Observable<{ data: any[] }> {
-    return this.http.get(`http://localhost:3000/api/ai/videos`, { params: { query } }) as unknown as Observable<{ data: any[] }>;
+    return this.http.get(`https://ai-medical-symptoms-analyzer.onrender.com/api/ai/videos`, { params: { query } }) as unknown as Observable<{ data: any[] }>;
   }
 }

@@ -44,7 +44,7 @@ export interface Analytics {
 @Injectable({ providedIn: 'root' })
 export class AppointmentService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:3000/api/appointments';
+  private readonly apiUrl = 'https://ai-medical-symptoms-analyzer.onrender.com/api/appointments';
 
   bookAppointment(data: {
     doctorId: string;

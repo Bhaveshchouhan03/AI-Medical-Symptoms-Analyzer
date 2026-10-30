@@ -40,7 +40,7 @@ export interface MedicineStats {
 @Injectable({ providedIn: 'root' })
 export class MedicineService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:3000/api/medicines';
+  private readonly apiUrl = 'https://ai-medical-symptoms-analyzer.onrender.com/api/medicines';
 
   getMedicines(params?: {
     search?: string;

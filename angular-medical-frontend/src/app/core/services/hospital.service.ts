@@ -13,7 +13,7 @@ export interface Hospital {
 @Injectable({ providedIn: 'root' })
 export class HospitalService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:3000/api/hospitals';
+  private readonly apiUrl = 'https://ai-medical-symptoms-analyzer.onrender.com/api/hospitals';
 
   getHospitals(): Observable<{ count: number; data: Hospital[] }> {
     return this.http.get<{ count: number; data: Hospital[] }>(this.apiUrl);

@@ -47,7 +47,7 @@ export interface Doctor {
 @Injectable({ providedIn: 'root' })
 export class DoctorService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:3000/api/doctors';
+  private readonly apiUrl = 'https://ai-medical-symptoms-analyzer.onrender.com/api/doctors';
 
   getDoctors(params?: {
     name?: string;

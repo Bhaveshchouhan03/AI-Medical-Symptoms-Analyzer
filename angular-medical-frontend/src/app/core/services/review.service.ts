@@ -14,7 +14,7 @@ export interface Review {
 @Injectable({ providedIn: 'root' })
 export class ReviewService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:3000/api/reviews';
+  private readonly apiUrl = 'https://ai-medical-symptoms-analyzer.onrender.com/api/reviews';
 
   getDoctorReviews(doctorId: string): Observable<{ count: number; data: Review[] }> {
     return this.http.get<{ count: number; data: Review[] }>(`${this.apiUrl}/doctor/${doctorId}`);

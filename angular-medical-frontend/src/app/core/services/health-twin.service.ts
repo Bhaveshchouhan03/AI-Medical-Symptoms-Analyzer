@@ -110,7 +110,7 @@ export interface SmartAlert {
 @Injectable({ providedIn: 'root' })
 export class HealthTwinService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:3000/api/healthtwin';
+  private readonly apiUrl = 'https://ai-medical-symptoms-analyzer.onrender.com/api/healthtwin';
 
   getProfile(): Observable<{ status: string; data: HealthTwinProfile; weight: number }> {
     return this.http.get<{ status: string; data: HealthTwinProfile; weight: number }>(`${this.apiUrl}/profile`);

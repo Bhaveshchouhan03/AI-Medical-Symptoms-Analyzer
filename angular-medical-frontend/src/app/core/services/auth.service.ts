@@ -14,7 +14,7 @@ import {
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
-  private readonly apiUrl = 'http://localhost:3000/api/auth';
+  private readonly apiUrl = 'https://ai-medical-symptoms-analyzer.onrender.com/api/auth';
 
   // Reactive state via signals
   private _currentUser = signal<User | null>(this.loadUserFromStorage());
