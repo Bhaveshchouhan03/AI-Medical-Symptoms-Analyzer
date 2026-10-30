@@ -22,7 +22,7 @@ const PORT = process.env.PORT || 3000;
 connectDB();
 
 // Middleware
-app.use(cors({ origin: 'https://ai-medical-symptoms-analyzer-jl29w325w.vercel.app', credentials: true }));
+app.use(cors({ origin: ['http://localhost:4200','https://ai-medical-symptoms-analyzer-ip7bbobqm.vercel.app'], credentials: true }));
 app.use(express.json({ limit: '10mb' })); // Support base64 image uploads
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
