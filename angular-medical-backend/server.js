@@ -18,11 +18,25 @@ const faceRoutes = require('./face/face.routes');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const allowedOrigins = [
+  'http://localhost:4200',
+  'https://ai-medical-symptoms-analyzer.vercel.app',
+  'https://ai-medical-symptoms-analyzer-ip7bbobqm.vercel.app'
+];
+
 // Connect to MongoDB
 connectDB();
 
 // Middleware
-app.use(cors({ origin: ['http://localhost:4200','https://ai-medical-symptoms-analyzer-ip7bbobqm.vercel.app'], credentials: true }));
+// app.use(cors({ origin: ['http://localhost:4200','https://ai-medical-symptoms-analyzer-ip7bbobqm.vercel.app'], credentials: true }));
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json({ limit: '10mb' })); // Support base64 image uploads
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
